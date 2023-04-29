@@ -9,8 +9,8 @@ cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make c
 cd $SRC_DIR/DAPNETGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/DMRGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/AMBEServer && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/DStarRepeater && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/ircDDBGateway && make clean && make -j$(nproc) && make install && make clean
+cd $SRC_DIR/DStarRepeater && make clean && make && make install && make clean
+cd $SRC_DIR/ircDDBGateway && make clean && make && make install && make clean
 cd $SRC_DIR/M17Gateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVMCal && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/DMR2YSF && make clean && make -j$(nproc) && make install && make clean
