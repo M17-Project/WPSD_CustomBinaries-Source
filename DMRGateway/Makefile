@@ -31,7 +31,7 @@ DMRGateway.o: GitVersion.h FORCE
 FORCE:
 
 clean:
-		$(RM) DMRGateway *.o *.d *.bak *~ GitVersion.h
+		$(RM) DMRGateway *.o *.d *.bak *.out *~ GitVersion.h
 
 install:
 		install -m 755 DMRGateway $(HOME)/dev/W0CHP-PiStar-bin/
