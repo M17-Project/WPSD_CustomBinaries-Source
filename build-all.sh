@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cwd=$(pwd)
+
 # Check for the correct arguments
 if [ "$#" -ne 1 ] || ( [ "$1" != "bullseye" ] && [ "$1" != "buster" ] ); then
   echo "Usage: $0 {bullseye|buster}"
@@ -58,5 +60,9 @@ cd $SRC_DIR/NextionDriver && make clean && make -j$(nproc) && make install && ma
 cd $SRC_DIR/teensy_loader_cli && make clean && make -j$(nproc) && make install && make clean
 
 strip `find $DEST_DIR -type f -executable -exec file -i '{}' \; | grep 'x-executable; charset=binary' | sed 's/:.*//g'`
+
+cd $DEST_DIR
+git commit -a -m '* Minor: rebuilds'
+cd $cwd
 
 exit 0
