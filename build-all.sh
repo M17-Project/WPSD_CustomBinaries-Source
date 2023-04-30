@@ -1,17 +1,45 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# Check for the correct arguments
+if [ "$#" -ne 1 ] || ( [ "$1" != "bullseye" ] && [ "$1" != "buster" ] ); then
+  echo "Usage: $0 {bullseye|buster}"
+  exit 1
+fi
+
+# Set the branch name based on the argument passed to the script
+if [ "$1" == "bullseye" ]; then
+  BRANCH="master"
+elif [ "$1" == "buster" ]; then
+  BRANCH="buster"
+fi
 
 SRC_DIR=$HOME/dev/WPSD_CustomBinaries-Source
 DEST_DIR=$HOME/dev/W0CHP-PiStar-bin
+
+# Switch to the respective branch in the DEST_DIR repository
+if ! git -C "$DEST_DIR" checkout "$BRANCH"; then
+  echo "Error: Failed to switch to branch '$BRANCH' in '$DEST_DIR' repository."
+  exit 1
+fi
+
+# now, select the proper Makefiles for the OSs and gatweays that use 'libgps'
+if [ "$1" == "bullseye" ]; then
+  MAKEFILE="Makefile"
+elif [ "$1" == "buster" ]; then
+  MAKEFILE="Makefile.buster" # no libgps, sunsetting
+fi
+
+# continue with the rest of the script
 
 cd $SRC_DIR/APRSGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make clean && \
      make -j$(nproc) -f Makefile.Pi.Adafruit && make -f Makefile.Pi.Adafruit install && make -f Makefile.Pi.Adafruit clean
 cd $SRC_DIR/DAPNETGateway && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/DMRGateway && make clean && make -j$(nproc) && make install && make clean
+cd $SRC_DIR/DMRGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/AMBEServer && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/DStarRepeater && make clean && make && make install && make clean
-cd $SRC_DIR/ircDDBGateway && make clean && make && make install && make clean
-cd $SRC_DIR/M17Gateway && make clean && make -j$(nproc) && make install && make clean
+cd $SRC_DIR/DStarRepeater && make clean && make -j2 && make install && make clean
+cd $SRC_DIR/ircDDBGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j2 && make -f $MAKEFILE install && make -f $MAKEFILE clean
+cd $SRC_DIR/M17Gateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/MMDVMCal && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/DMR2YSF && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/DMR2NXDN && make clean && make -j$(nproc) && make install && make clean
@@ -19,10 +47,13 @@ cd $SRC_DIR/MMDVM_CM/YSF2DMR && make clean && make -j$(nproc) && make install &&
 cd $SRC_DIR/MMDVM_CM/YSF2P25 && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/YSF2NXDN && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/NXDN2DMR && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/NXDNClients && make clean && make -j$(nproc) && make install && make clean
+cd $SRC_DIR/NXDNClients/NXDNGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/P25Clients && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/YSFClients && make clean && make -j$(nproc) && make install && make clean
+cd $SRC_DIR/YSFClients/YSFGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
+cd $SRC_DIR/YSFClients/DGIdGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/NextionDriver && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/teensy_loader_cli && make clean && make -j$(nproc) && make install && make clean
 
 strip `find $DEST_DIR -type f -executable -exec file -i '{}' \; | grep 'x-executable; charset=binary' | sed 's/:.*//g'`
+
+exit 0
