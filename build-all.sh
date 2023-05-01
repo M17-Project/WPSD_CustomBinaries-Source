@@ -3,16 +3,16 @@
 cwd=$(pwd)
 
 # Check for the correct arguments
-if [ "$#" -ne 1 ] || ( [ "$1" != "bullseye" ] && [ "$1" != "buster" ] ); then
-  echo "Usage: $0 {bullseye|buster}"
+if [ "$#" -ne 1 ] || ( [ "$1" != "gpsd" ] && [ "$1" != "nogpsd" ] ); then
+  echo "Usage: $0 {gpsd|nogpsd}"
   exit 1
 fi
 
 # Set the branch name based on the argument passed to the script
-if [ "$1" == "bullseye" ]; then
+if [ "$1" == "gpsd" ]; then
+  BRANCH="gpsd"
+elif [ "$1" == "nogpsd" ]; then
   BRANCH="master"
-elif [ "$1" == "buster" ]; then
-  BRANCH="buster"
 fi
 
 SRC_DIR=$HOME/dev/WPSD_CustomBinaries-Source
@@ -25,9 +25,9 @@ if ! git -C "$DEST_DIR" checkout "$BRANCH"; then
 fi
 
 # now, select the proper Makefiles for the OSs and gatweays that use 'libgps'
-if [ "$1" == "bullseye" ]; then
+if [ "$1" == "gpsd" ]; then
   MAKEFILE="Makefile"
-elif [ "$1" == "buster" ]; then
+elif [ "$1" == "nogpsd" ]; then
   MAKEFILE="Makefile.buster" # no libgps, sunsetting
 fi
 
