@@ -126,10 +126,10 @@ int getInternetStatus(int i){
     char *hostname;
     struct hostent *hostinfo;
 
-    hostname = "brandmeister.network";
-    if (i%4 == 1) hostname = "news.brandmeister.network";
-    if (i%4 == 2) hostname = "hose.brandmeister.network";
-    if (i%4 == 3) hostname = "wiki.brandmeister.network";
+    hostname = "one.one.one.one";
+    if (i%4 == 1) hostname = "dns9.quad9.net";
+    if (i%4 == 2) hostname = "dns.google";
+    if (i%4 == 3) hostname = "dns.opendns.com";
 
     hostinfo = gethostbyname (hostname);
 
@@ -473,7 +473,7 @@ int readConfig(int filenr) {
 
 
 void readVersions(char *filename) {
-  char buffer[102], *val;
+  char buffer[100], *val;
 
 //  printf("--- File  [%s]\n",filename);
   FILE* fp = fopen(filename, "rt");
@@ -486,7 +486,7 @@ void readVersions(char *filename) {
 //        printf("Key [%s]\n",buffer);
 //        printf("Val [%s]\n\n",val);
         if (strcmp(buffer,"PRETTY_NAME")==0) { strcpy(OSname,val); }
-        if (strcmp(buffer,"Version")==0)     { strcpy(PIname,val); }
+        if (strcmp(buffer,"WPSD_Ver")==0) { strcpy(WPSDver,val); }
     }
     fclose(fp);
   }
@@ -924,20 +924,20 @@ int cmpstringp( const void* a, const void* b)
 }
 
 
-void readGroups(void){
-#define BUFFER_SZ 100
+void readGroups(void) {
+    #define BUFFER_SZ 100
     char fname[250];
 
-    strcpy(fname,datafiledir);
-    strcat(fname,groupsFile);
+    strcpy(fname, datafiledir);
+    strcat(fname, groupsFile);
 
-    writelog(LOG_NOTICE,"  Reading groups from %s",fname);
+    writelog(LOG_NOTICE, "  Reading groups from %s", fname);
 
-    nmbr_groups=0;
+    nmbr_groups = 0;
 
     FILE* fp = fopen(fname, "rt");
     if (fp == NULL) {
-        writelog(LOG_WARNING, " ERROR: Couldn't open the groups file %s.",fname);
+        writelog(LOG_WARNING, " ERROR: Couldn't open the groups file %s.", fname);
         return;
     }
 
@@ -945,23 +945,18 @@ void readGroups(void){
     int nr;
     insert_group(groups, 0, "");
     while (fgets(buffer, BUFFER_SZ, fp) != NULL) {
-        nr=0;
-        char* key   = strtok(buffer, " \":");
+        nr = 0;
+        char* key = strtok(buffer, ",");
         if (key == NULL) continue;
-        nr=atoi(key);
+        nr = atoi(key);
 
-        key   = strtok(NULL, ":\"");
-        if (key == NULL)
-            continue;
-
-        key   = strtok(NULL, ":\"");
+        key = strtok(NULL, ",");
         if (key == NULL) continue;
 
-//        printf("Pushing %d %s \n",nr, key);fflush(NULL);
-        if (insert_group(groups, nr, key)==0) break;
+        if (insert_group(groups, nr, key) == 0) break;
     }
     fclose(fp);
-    writelog(LOG_NOTICE,"  Read %d groups.",nmbr_groups);
+    writelog(LOG_NOTICE, "  Read %d groups.", nmbr_groups);
 }
 
 
@@ -1008,7 +1003,7 @@ void updateDB(int age) {
         sprintf(text, "msg1.txt=\"Updating ...\"");
         sendCommand(text);
         if (strcmp(groupsFileSrc,GROUPSFILESRC)!=0) writelog(LOG_NOTICE," Fetching groups from %s",groupsFileSrc);
-        sprintf(cmd, "wget %s -O /tmp/groups >/dev/null 2>&1 && touch /tmp/groups && mv /tmp/groups %s",groupsFileSrc,fname);
+        sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/groups >/dev/null 2>&1 && touch /tmp/groups && mv /tmp/groups %s",groupsFileSrc,fname);
         ok=system(cmd);
         if (ok!=0) {
             sprintf(text, "msg.txt=\"Groups file update failed.\"");
@@ -1025,7 +1020,7 @@ void updateDB(int age) {
       }
     }
     sprintf(text, "msg1.txt=\"%s\"",tmp);
-    if (age<3000000) sendCommand(text);
+    if (age<43200) sendCommand(text);
 
     strcpy(fname,datafiledir);
     strcat(fname,usersFile);
@@ -1042,7 +1037,7 @@ void updateDB(int age) {
     if (age>0)
       if ((ok!=0)||(nu-attr.st_mtime>age)) {
         if (strcmp(usersFileSrc,USERSFILESRC)!=0) writelog(LOG_NOTICE," Fetching users from %s",groupsFileSrc);
-        sprintf(cmd, "wget %s -O /tmp/users >/dev/null >/dev/null 2>&1 && touch /tmp/users && mv /tmp/users %s",usersFileSrc,fname);
+        sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/users >/dev/null >/dev/null 2>&1 && touch /tmp/users && mv /tmp/users %s",usersFileSrc,fname);
         ok=system(cmd);
         if (ok!=0) {
             sprintf(tmp," ERROR: Users file update failed (%d)",ok);
@@ -1053,7 +1048,7 @@ void updateDB(int age) {
         }
     }
     sprintf(text, "msg2.txt=\"%s\"",tmp);
-    if (age<3000000) sendCommand(text);
+    if (age<43200) sendCommand(text);
 }
 
 

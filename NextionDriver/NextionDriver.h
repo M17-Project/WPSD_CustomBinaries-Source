@@ -19,7 +19,7 @@
 #if !defined(NextionDriver_H)
 #define NextionDriver_H
 
-#define NextionDriver_VERSION "1.26_W0CHP-PiStar-Dash"
+#define NextionDriver_VERSION "1.28_W0CHP-PiStar-Dash"
 
 #define TRUE	1
 #define FALSE	0
@@ -34,8 +34,8 @@
 #define GROUPSFILESRC			"https://api.brandmeister.network/v2/talkgroup"
 #define USERSFILE			"users.csv"
 #define USERSFILESRC			"https://www.radioid.net/static/user.csv"
-#define MAXGROUPS	2500
-#define MAXUSERS	250000
+#define MAXGROUPS	5000
+#define MAXUSERS	500000
 
 #define MODEM_DISPLAY 0
 #define MMDVM_DISPLAY 1
@@ -92,7 +92,7 @@ extern char datafiledir[500];
 
 extern char nextionDriverLink[100];
 extern int verbose, screenLayout;
-extern char OSname[100],PIname[100];
+extern char OSname[100],WPSDver[100];
 
 extern char nextionPort[100];
 extern char configFile1[200],configFile2[200];

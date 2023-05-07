@@ -53,7 +53,7 @@ char datafiledir[500];
 char groupsFile[100],usersFile[100];
 char groupsFileSrc[200],usersFileSrc[200];
 int verbose, screenLayout;
-char OSname[100],PIname[100];
+char OSname[100],WPSDver[100];
 
 int gelezen,check;
 unsigned char inhibit;
@@ -382,7 +382,7 @@ void handleButton(int received) {
                                                 writelog(LOG_NOTICE,"Not yet implemented"); }
                         if (RXbuffer[2]==4) {   writelog(LOG_NOTICE,"Sending OS info");
                                                 sprintf(text, "msg1.txt=\"%s\"",OSname); sendCommand(text);
-                                                sprintf(text, "msg2.txt=\"%s\"",PIname); sendCommand(text);
+                                                sprintf(text, "msg2.txt=\"%s\"",WPSDver); sendCommand(text);
                                             }
                         if (RXbuffer[2]==5) {   writelog(LOG_NOTICE,"Sending HW info");
                                                 ok=getHWinfo(info);
@@ -767,7 +767,8 @@ int main(int argc, char *argv[])
                 break;
             case 'V':
                 printf("\nNextionDriver version %s\n", NextionDriver_VERSION);
-                printf("Copyright (C) 2017...2023 ON7LDS. All rights reserved.\n\n");
+                printf("Copyright (C) 2017...2023 ON7LDS. All rights reserved.\n");
+                printf("With modifications by W0CHP.\n\n");
                 return 0;
                 break;
             case 'v':
@@ -797,6 +798,7 @@ int main(int argc, char *argv[])
             case ':':
                 printf("\nNextionDriver version %s\n", NextionDriver_VERSION);
                 printf("Copyright (C) 2017...2023 ON7LDS. All rights reserved.\n");
+                printf("With modifications by W0CHP.\n\n");
                 printf("\nUsage: %s -c <MMDVM config file> [-f] [-d] [-h]\n\n", argv[0]);
                 printf("  -c\tspecify the MMDVM config file, which might be extended with the NetxtionDriver config\n");
                 printf("  -C\tspecify a second config file, which might have the NetxtionDriver config\n");
@@ -858,7 +860,7 @@ int main(int argc, char *argv[])
     strcpy(OSname,"OS unknown"); readVersions("/etc/os-release");
     writelog(2,"Running on %s",OSname);
     readVersions("/etc/pistar-release");
-    if (strlen(PIname)>1) writelog(2,"Pi-Star v %s",PIname); else { strcpy(PIname,"Not Pi-Star"); writelog(2,"%s",PIname); }
+    if (strlen(WPSDver)>1) writelog(2,"W0CHP-PiStar-Dash v. #%s",WPSDver); else { strcpy(WPSDver,"Not WPSD!"); writelog(2,"%s",WPSDver); }
 
     //Open port ASAP to prevent issues on slow boards (like Pi Zero) -- thanks to KE7FNS
     writelog(2,"Opening ports");
