@@ -1003,7 +1003,8 @@ void updateDB(int age) {
         sprintf(text, "msg1.txt=\"Updating ...\"");
         sendCommand(text);
         if (strcmp(groupsFileSrc,GROUPSFILESRC)!=0) writelog(LOG_NOTICE," Fetching groups from %s",groupsFileSrc);
-        sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/groups >/dev/null 2>&1 && touch /tmp/groups && mv /tmp/groups %s",groupsFileSrc,fname);
+	sprintf(cmd, "curl -s -L -o /tmp/groups -A 'W0CHP-PiStar-Dash NextionDriver' %s && mv /tmp/groups %s", groupsFileSrc, fname);
+        //sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/groups >/dev/null 2>&1 && touch /tmp/groups && mv /tmp/groups %s",groupsFileSrc,fname);
         ok=system(cmd);
         if (ok!=0) {
             sprintf(text, "msg.txt=\"Groups file update failed.\"");
@@ -1037,7 +1038,8 @@ void updateDB(int age) {
     if (age>0)
       if ((ok!=0)||(nu-attr.st_mtime>age)) {
         if (strcmp(usersFileSrc,USERSFILESRC)!=0) writelog(LOG_NOTICE," Fetching users from %s",groupsFileSrc);
-        sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/users >/dev/null >/dev/null 2>&1 && touch /tmp/users && mv /tmp/users %s",usersFileSrc,fname);
+	sprintf(cmd, "curl -s -L -A 'W0CHP-PiStar-Dash NextionDriver' %s -o /tmp/users >/dev/null 2>&1 && touch /tmp/users && mv /tmp/users %s", usersFileSrc, fname);
+        //sprintf(cmd, "wget -U 'W0CHP-PiStar-Dash NextionDriver' %s -O /tmp/users >/dev/null >/dev/null 2>&1 && touch /tmp/users && mv /tmp/users %s",usersFileSrc,fname);
         ok=system(cmd);
         if (ok!=0) {
             sprintf(tmp," ERROR: Users file update failed (%d)",ok);
