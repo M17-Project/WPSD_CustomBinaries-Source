@@ -44,11 +44,11 @@ link + filename, f.e. :
 ```
 GroupsFileSrc=https://place.of.the.groupsfile/directory/where/groupfile.txt
 ```
-This file will be fetched with `wget` and placed in the directory specified
+This file will be fetched with `curl` and placed in the directory specified
 by `DataFilesPath` and named as specified by `GroupsFile`  
 When not specified, the groups file is fetched from BrandMeister.  
 **Note:**
-The `wget` program must be present on your system !
+The `curl` program must be present on your system !
 
 ### DMRidFile
 the name of the file with user number <-> name info
@@ -59,11 +59,11 @@ link + filename, f.e. :
 ```
 DMRidFileSrc=https://place.of.the.usersfile/directory/where/DMRid.csv
 ```
-This file will be fetched with `wget` and placed in the directory specified
+This file will be fetched with `curl` and placed in the directory specified
 by `DataFilesPath` and named as specified by `DMRidFile`  
 When not specified, the groups file is fetched from RadioID.  
 **Note:**
-The `wget` program must be present on your system !
+The `curl` program must be present on your system !
 
 
 
