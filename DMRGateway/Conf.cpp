@@ -264,8 +264,6 @@ bool CConf::read()
 		// if value is not quoted, remove after # (to make comment)
 		if ((p = strchr(value, '#')) != NULL && p == value)
 		    *p = '\0';
-		//if ((p = strchr(value, '#')) != NULL)
-		//	*p = '\0';
 
 		// remove trailing tab/space
 		for (p = value + strlen(value) - 1U; p >= value && (*p == '\t' || *p == ' '); p--)
