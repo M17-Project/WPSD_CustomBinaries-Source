@@ -92,7 +92,6 @@ void CGPSD::sendReport()
 {
 	if (!::gps_waiting(&m_gpsdData, 0))
 		return;
-
 #if GPSD_API_MAJOR_VERSION >= 7
 	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
 		return;
@@ -101,15 +100,17 @@ void CGPSD::sendReport()
 		return;
 #endif
 
+#if GPSD_API_MAJOR_VERSION >= 10
 	if (m_gpsdData.fix.status != STATUS_FIX)
+#else
+	if (m_gpsdData.status != STATUS_FIX)
+#endif
 		return;
 
 	bool latlonSet = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
 	if (!latlonSet)
 		return;
-
 	bool altitudeSet = (m_gpsdData.set & ALTITUDE_SET) == ALTITUDE_SET;
-
 	float latitude  = float(m_gpsdData.fix.latitude);
 	float longitude = float(m_gpsdData.fix.longitude);
 #if GPSD_API_MAJOR_VERSION >= 9

@@ -250,7 +250,6 @@ void CAPRSWriter::sendIdFrameMobile()
 {
 	if (!::gps_waiting(&m_gpsdData, 0))
 		return;
-
 #if GPSD_API_MAJOR_VERSION >= 7
 	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
 		return;
@@ -259,8 +258,11 @@ void CAPRSWriter::sendIdFrameMobile()
 		return;
 #endif
 
+#if GPSD_API_MAJOR_VERSION >= 10
 	if (m_gpsdData.fix.status != STATUS_FIX)
-		return;
+#else
+	if (m_gpsdData.status != STATUS_FIX)
+#endif
 
 	bool latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
 	bool altitudeSet = (m_gpsdData.set & ALTITUDE_SET) == ALTITUDE_SET;
@@ -330,7 +332,7 @@ void CAPRSWriter::sendIdFrameMobile()
                 symbol.append("Wi");
 
 	char output[500U];
-	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%c%s%c%c",
+	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%s%c",
 		m_callsign.c_str(), server.c_str(),
 		lat, (rawLatitude < 0.0F)  ? 'S' : 'N',
 		lon, (rawLongitude < 0.0F) ? 'W' : 'E');

@@ -307,6 +307,11 @@ void CAPRSWriter::sendIdFrameMobile()
 		return;
 #endif
 
+#if GPSD_API_MAJOR_VERSION >= 10
+	if (m_gpsdData.fix.status != STATUS_FIX)
+#else
+	if (m_gpsdData.status != STATUS_FIX)
+#endif
 
 	if (m_gpsdData.fix.status != STATUS_FIX)
 		return;
