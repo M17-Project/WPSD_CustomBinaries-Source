@@ -62,7 +62,7 @@ cd $SRC_DIR/teensy_loader_cli && make clean && make -j$(nproc) && make install &
 strip `find $DEST_DIR -type f -executable -exec file -i '{}' \; | grep 'x-executable; charset=binary' | sed 's/:.*//g'`
 
 cd $DEST_DIR
-git commit -a -m '* Minor: rebuilds'
+git commit -a -m '* Minor: update from upstream & rebuilds'
 cd $cwd
 
 exit 0
