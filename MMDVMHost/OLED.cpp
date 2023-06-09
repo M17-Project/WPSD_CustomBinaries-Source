@@ -283,9 +283,9 @@ void COLED::setIdleInt()
 
     m_display.setCursor(0,OLED_LINE4);
     m_display.setTextSize(1);
-    m_display.printf("  %s",m_ipaddress.c_str());
-    m_display.setCursor(0,OLED_LINE5);
     m_display.print("        -IDLE-");
+    m_display.setCursor(0,OLED_LINE5);
+    m_display.printf("  %s",m_ipaddress.c_str());
 
     if (m_displayScroll && m_displayLogoScreensaver)
         m_display.startscrolldiagleft(0x00,0x0f);  //the MMDVM logo scrolls the whole screen
