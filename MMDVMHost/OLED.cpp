@@ -600,10 +600,14 @@ void COLED::writeM17Int(const char* source, const char* dest, const char* type)
     m_display.fillRect(0, OLED_LINE2, m_display.width(), m_display.height(), BLACK);
 
     m_display.setCursor(0,OLED_LINE3);
-    m_display.printf("%s %s", type, source);
+    m_display.printf("from: %s %s", type, source);
 
     m_display.setCursor(0,OLED_LINE4);
-    m_display.printf("  %s", dest);
+    m_display.printf("to:   %s", dest);
+
+    m_display.setCursor(0,OLED_LINE6);
+    m_display.printf("%s",m_ipaddress.c_str());
+
 
     OLED_statusbar();
     m_display.display();
