@@ -243,8 +243,9 @@ bool COLED::open()
     m_display.display();        // display it (clear display)
 
     OLED_statusbar();
-    m_display.setCursor(0,OLED_LINE3);
-    m_display.print("Initializing");
+    m_display.setCursor(0,OLED_LINE4);
+    m_display.setTextSize(1);
+    m_display.print("   -Initializing-");
     m_display.display();
 
     return true;
@@ -256,21 +257,6 @@ void COLED::setIdleInt()
 
     m_display.clearDisplay();
     OLED_statusbar();
-
-//    m_display.setCursor(0,30);
-//    m_display.setTextSize(3);
-//    m_display.print("Idle");
-
-//    m_display.setTextSize(1);
-
-/*
-    m_display.setCursor(0,OLED_LINE3);
-    m_display.setTextSize(1);
-    m_display.print("W0CHP-PiStar-Dash");
-    m_display.setCursor(0,OLED_LINE5);
-    m_display.setTextSize(1);
-    m_display.print("-IDLE-");
-*/
 
     if (m_displayScroll && m_displayLogoScreensaver)
         m_display.startscrolldiagleft(0x00,0x0f);  //the MMDVM logo scrolls the whole screen
@@ -294,6 +280,16 @@ void COLED::setIdleInt()
         networkInfoInitialized = true;
         passCounter = 0;
     }
+
+    m_display.setCursor(0,OLED_LINE4);
+    m_display.setTextSize(1);
+    m_display.printf("  %s",m_ipaddress.c_str());
+    m_display.setCursor(0,OLED_LINE5);
+    m_display.print("        -IDLE-");
+
+    if (m_displayScroll && m_displayLogoScreensaver)
+        m_display.startscrolldiagleft(0x00,0x0f);  //the MMDVM logo scrolls the whole screen
+    m_display.display();
 }
 
 void COLED::setErrorInt(const char* text)
@@ -334,11 +330,12 @@ void COLED::setQuitInt()
     OLED_statusbar();
 
     m_display.setCursor(0,30);
-    m_display.setTextSize(3);
+    m_display.setTextSize(2);
     m_display.print("Stopping");
 
     m_display.setTextSize(1);
     m_display.display();
+    sleep(2);
 }
 
 void COLED::setFMInt()
@@ -705,7 +702,7 @@ void COLED::writeCWInt()
     m_display.clearDisplay();
 
     m_display.setCursor(0,30);
-    m_display.setTextSize(2);
+    m_display.setTextSize(3);
     m_display.print("CW ID TX");
 
     m_display.setTextSize(1);
@@ -719,14 +716,13 @@ void COLED::clearCWInt()
     m_display.clearDisplay();
 
     m_display.setCursor(0,OLED_LINE1);
-    m_display.setTextSize(3);
-    m_display.print("W0CHP");
-    m_display.setCursor(0,OLED_LINE4);
     m_display.setTextSize(1);
-    m_display.print(" PiStar-Dash");
-    m_display.setCursor(0,OLED_LINE5);
+    m_display.print("W0CHP-PiStar-Dash");
+    m_display.setCursor(0,OLED_LINE3);
     m_display.setTextSize(1);
     m_display.print(" -IDLE-");
+    m_display.setCursor(0,OLED_LINE5);
+    m_display.printf("%s",m_ipaddress.c_str());
 
     if (m_displayScroll)
         m_display.startscrolldiagleft(0x00,0x0f);
@@ -741,9 +737,9 @@ void COLED::close()
     m_display.fillRect(0, 0, m_display.width(), 16, BLACK);
     if (m_displayScroll)
         m_display.startscrollleft(0x00,0x01);
-    m_display.setCursor(0,00);
+    m_display.setCursor(0,OLED_LINE3);
     m_display.setTextSize(2);
-    m_display.print("-OFFLINE-");
+    m_display.print(" -OFFLINE-");
     m_display.display();
 
     m_display.close();
