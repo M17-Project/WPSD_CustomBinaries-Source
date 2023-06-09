@@ -362,7 +362,6 @@ bool CM17Control::writeModem(unsigned char* data, unsigned int len)
 			// Remove any erronous EOF from the FN
 			netData[M17_LSF_LENGTH_BYTES - M17_CRC_LENGTH_BYTES + 0U] &= 0x7FU;
 
-
 			// The CRC is added in the networking code
 
 			m_network->write(netData);
@@ -786,7 +785,7 @@ void CM17Control::writeQueueRF(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("M17, overflow in the M17 RF queue");
+		LogError("M17, overflow in the M17 RF queue");
 		return;
 	}
 
@@ -806,7 +805,7 @@ void CM17Control::writeQueueNet(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("M17, overflow in the M17 RF queue");
+		LogError("M17, overflow in the M17 RF queue");
 		return;
 	}
 

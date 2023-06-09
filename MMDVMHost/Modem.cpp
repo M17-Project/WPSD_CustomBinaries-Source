@@ -353,7 +353,7 @@ void CModem::setTransparentDataParams(unsigned int sendFrameType)
 
 bool CModem::open()
 {
-	::LogDebug("Opening the MMDVM");
+	::LogMessage("Opening the MMDVM");
 
 	bool ret = m_port->open();
 	if (!ret)
@@ -387,7 +387,7 @@ bool CModem::open()
 		return false;
 	}
 
-	if (m_fmEnabled && m_duplex) {
+	if (m_fmEnabled) {
 		ret = setFMCallsignParams();
 		if (!ret) {
 			m_port->close();
@@ -1156,7 +1156,7 @@ void CModem::close()
 {
 	assert(m_port != NULL);
 
-	::LogDebug("Closing the MMDVM");
+	::LogMessage("Closing the MMDVM");
 
 	m_port->close();
 }
