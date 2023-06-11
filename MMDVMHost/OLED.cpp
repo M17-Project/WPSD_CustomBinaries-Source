@@ -306,10 +306,10 @@ void COLED::setIdleInt()
 	m_display.setCursor(0, OLED_LINE3);
 	m_display.setTextSize(1);
 	m_display.printf("Auto-AP Running...");
-	m_display.setCursor(0, OLED_LINE4);
+	m_display.setCursor(0, OLED_LINE5);
 	m_display.setTextSize(1);
 	m_display.printf("SSID: %s", ssid.c_str());
-	m_display.setCursor(0, OLED_LINE5);
+	m_display.setCursor(0, OLED_LINE6);
 	m_display.setTextSize(1);
 	m_display.printf("IP: %s", m_ipaddress.c_str());
     } else { // Connected to network - no Auto-AP mode; normal display layout...
