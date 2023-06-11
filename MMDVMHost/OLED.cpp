@@ -285,7 +285,7 @@ void COLED::setIdleInt()
 	}
 	// Read ssid value from /etc/hostapd.conf if it exists...
 	std::string ssid;
-	std::ifstream configFile("/etc/hostapd.conf");
+	std::ifstream configFile("/etc/hostapd/hostapd.conf");
 	if (configFile.is_open()) {
 	    std::string line;
 	    while (std::getline(configFile, line)) {
