@@ -317,7 +317,7 @@ void COLED::setIdleInt()
 	m_display.setTextSize(1);
 	m_display.print("        -IDLE-");
 	m_display.setCursor(0, OLED_LINE5);
-	m_display.printf("  %s", m_ipaddress.c_str());
+	m_display.printf("%s", m_ipaddress.c_str());
     }
 
     if (m_displayScroll && m_displayLogoScreensaver)
