@@ -324,7 +324,7 @@ void COLED::setIdleInt()
             m_display.print("  W0CHP-PiStar-Dash");
             m_display.setCursor(0,OLED_LINE4);
             m_display.setTextSize(1);
-            m_display.print("        -IDLE-");
+            m_display.print("       -IDLE-");
             m_display.setCursor(0, OLED_LINE5);
             m_display.printf("%s", m_ipaddress.c_str());
         }

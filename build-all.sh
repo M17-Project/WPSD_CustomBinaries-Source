@@ -39,7 +39,7 @@ cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make c
 cd $SRC_DIR/DAPNETGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/DMRGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/AMBEServer && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/DStarRepeater && make clean && make -j2 && make install && make clean
+#cd $SRC_DIR/DStarRepeater && make clean && make -j2 && make install && make clean
 cd $SRC_DIR/ircDDBGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j2 && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/M17Gateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/MMDVMCal && make clean && make -j$(nproc) && make install && make clean
