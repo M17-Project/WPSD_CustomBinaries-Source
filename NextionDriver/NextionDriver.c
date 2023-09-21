@@ -924,7 +924,7 @@ int main(int argc, char *argv[])
     sendCommand("bkcmd=0");
     sendCommand("sleep=0");
     sendCommand("page 0");
-    sendCommand("cls 0");
+    //sendCommand("cls 0");
     sendCommand("dim=100");
     sendCommand("t0.txt=\"MMDVM Starting...\"");
     sprintf(TXbuffer,"ussp=%d",sleepWhenInactive);
