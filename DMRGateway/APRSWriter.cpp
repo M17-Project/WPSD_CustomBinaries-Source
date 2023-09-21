@@ -163,7 +163,7 @@ void CAPRSWriter::sendIdFrame()
                 symbol.append("Wi");
 
 	char output[1000U];
-	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%c%s%c%c/A=%06.0f%s %s\r\n%s>APDG03:>Powered by W0CHP-PiStar-Dash (https://wpsd.w0chp.net)\r\n",
+	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%c%s%c%c/A=%06.0f%s %s\r\n%s>APDG03:>Powered by WPSD (https://wpsd.w0chp.net)\r\n",
 		m_callsign.c_str(), server.c_str(),
 		lat, (m_latitude < 0.0F)  ? 'S' : 'N', symbol[0],
 		lon, (m_longitude < 0.0F) ? 'W' : 'E', symbol[1],
