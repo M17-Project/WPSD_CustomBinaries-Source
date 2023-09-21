@@ -19,7 +19,7 @@
 #if !defined(NextionDriver_H)
 #define NextionDriver_H
 
-#define NextionDriver_VERSION "1.29.0_W0CHP-PiStar-Dash"
+#define NextionDriver_VERSION "1.29.1_WPSD"
 
 #define TRUE	1
 #define FALSE	0
