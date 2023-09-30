@@ -321,7 +321,7 @@ void COLED::setIdleInt()
         if (m_displayLogoScreensaver) {
             m_display.setCursor(0, OLED_LINE3);
             m_display.setTextSize(1);
-            m_display.print("  W0CHP-PiStar-Dash");
+            m_display.print("  Powered by WPSD");
             m_display.setCursor(0,OLED_LINE4);
             m_display.setTextSize(1);
             m_display.print("       -IDLE-");
@@ -762,7 +762,7 @@ void COLED::clearCWInt()
 
     m_display.setCursor(0,OLED_LINE1);
     m_display.setTextSize(1);
-    m_display.print("  W0CHP-PiStar-Dash");
+    m_display.print("  Powered by WPSD");
     m_display.setCursor(0,OLED_LINE3);
     m_display.setTextSize(1);
     m_display.print("       -IDLE-");
