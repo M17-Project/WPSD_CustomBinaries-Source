@@ -780,17 +780,17 @@ void CModem::clock(unsigned int ms)
 						m_tx = (m_buffer[m_offset + 2U] & 0x01U) == 0x01U;
 						bool adcOverflow = (m_buffer[m_offset + 2U] & 0x02U) == 0x02U;
 						if (adcOverflow)
-							LogError("MMDVM ADC levels have overflowed");
+							LogDebug("MMDVM ADC levels have overflowed");
 						bool rxOverflow = (m_buffer[m_offset + 2U] & 0x04U) == 0x04U;
 						if (rxOverflow)
-							LogError("MMDVM RX buffer has overflowed");
+							LogDebug("MMDVM RX buffer has overflowed");
 						bool txOverflow = (m_buffer[m_offset + 2U] & 0x08U) == 0x08U;
 						if (txOverflow)
-							LogError("MMDVM TX buffer has overflowed");
+							LogDebug("MMDVM TX buffer has overflowed");
 						m_lockout = (m_buffer[m_offset + 2U] & 0x10U) == 0x10U;
 						bool dacOverflow = (m_buffer[m_offset + 2U] & 0x20U) == 0x20U;
 						if (dacOverflow)
-							LogError("MMDVM DAC levels have overflowed");
+							LogDebug("MMDVM DAC levels have overflowed");
 						m_cd = (m_buffer[m_offset + 2U] & 0x40U) == 0x40U;
 
 						m_p25Space    = 0U;
@@ -823,17 +823,17 @@ void CModem::clock(unsigned int ms)
 						m_tx = (m_buffer[m_offset + 1U] & 0x01U) == 0x01U;
 						bool adcOverflow = (m_buffer[m_offset + 1U] & 0x02U) == 0x02U;
 						if (adcOverflow)
-							LogError("MMDVM ADC levels have overflowed");
+							LogDebug("MMDVM ADC levels have overflowed");
 						bool rxOverflow = (m_buffer[m_offset + 1U] & 0x04U) == 0x04U;
 						if (rxOverflow)
-							LogError("MMDVM RX buffer has overflowed");
+							LogDebug("MMDVM RX buffer has overflowed");
 						bool txOverflow = (m_buffer[m_offset + 1U] & 0x08U) == 0x08U;
 						if (txOverflow)
-							LogError("MMDVM TX buffer has overflowed");
+							LogDebug("MMDVM TX buffer has overflowed");
 						m_lockout = (m_buffer[m_offset + 1U] & 0x10U) == 0x10U;
 						bool dacOverflow = (m_buffer[m_offset + 1U] & 0x20U) == 0x20U;
 						if (dacOverflow)
-							LogError("MMDVM DAC levels have overflowed");
+							LogDebug("MMDVM DAC levels have overflowed");
 						m_cd = (m_buffer[m_offset + 1U] & 0x40U) == 0x40U;
 
 						m_dstarSpace  = m_buffer[m_offset + 3U];
