@@ -34,6 +34,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <iostream> // for cpu temp
+#include <cmath>    // for cpu temp rounding
 
 #include "ArduiPi_OLED_lib.h"
 #include "Adafruit_GFX.h"
