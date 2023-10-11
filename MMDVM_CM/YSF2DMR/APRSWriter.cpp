@@ -207,7 +207,7 @@ void CAPRSWriter::sendIdFrames()
 		server.append("S");
 
         char output[1500U];
-        ::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%cW%s%ci/A=%06.0f%s %s\r\n%s>APDG03:>Powered by WPSD (https://wpsd.w0chp.net)\r\n",                                               
+        ::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%cW%s%ci/A=%06.0f%s %s\r\n%s>APDG03:>Powered by WPSD (https://wpsd.radio)\r\n",                                               
                 m_callsign.c_str(), server.c_str(),
                 lat, (m_latitude < 0.0F)  ? 'S' : 'N',
                 lon, (m_longitude < 0.0F) ? 'W' : 'E',
