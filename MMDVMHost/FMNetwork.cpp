@@ -25,22 +25,35 @@
 #include <cassert>
 #include <cstring>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+const unsigned int MMDVM_SAMPLERATE = 8000U;
+
 const unsigned int BUFFER_LENGTH = 1500U;
 
-CFMNetwork::CFMNetwork(const std::string& callsign, const std::string& protocol, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, bool debug) :
+CFMNetwork::CFMNetwork(const std::string& callsign, const std::string& protocol, const std::string& localAddress, unsigned short localPort, const std::string& gatewayAddress, unsigned short gatewayPort, unsigned int sampleRate, const std::string& squelchFile, bool debug) :
 m_callsign(callsign),
 m_protocol(FMNP_USRP),
 m_socket(localAddress, localPort),
 m_addr(),
 m_addrLen(0U),
+m_sampleRate(sampleRate),
+m_squelchFile(squelchFile),
 m_debug(debug),
 m_enabled(false),
 m_buffer(2000U, "FM Network"),
-m_seqNo(0U)
+m_seqNo(0U),
+m_resampler(NULL),
+m_error(0),
+m_fd(-1)
 {
 	assert(!callsign.empty());
 	assert(gatewayPort > 0U);
 	assert(!gatewayAddress.empty());
+	assert(sampleRate > 0U);
 
 	if (CUDPSocket::lookup(gatewayAddress, gatewayPort, m_addr, m_addrLen) != 0)
 		m_addrLen = 0U;
@@ -54,10 +67,13 @@ m_seqNo(0U)
 		m_protocol = FMNP_RAW;
 	else
 		m_protocol = FMNP_USRP;
+
+	m_resampler = ::src_new(SRC_SINC_FASTEST, 1, &m_error);
 }
 
 CFMNetwork::~CFMNetwork()
 {
+	::src_delete(m_resampler);
 }
 
 bool CFMNetwork::open()
@@ -69,10 +85,18 @@ bool CFMNetwork::open()
 
 	LogMessage("Opening FM network connection");
 
+	if (!m_squelchFile.empty()) {
+		m_fd = ::open(m_squelchFile.c_str(), O_WRONLY | O_SYNC);
+		if (m_fd == -1) {
+			LogError("Cannot open the squelch file: %s, errno=%d", m_squelchFile.c_str(), errno);
+			return false;
+		}
+	}
+
 	return m_socket.open(m_addr);
 }
 
-bool CFMNetwork::writeData(float* data, unsigned int nSamples)
+bool CFMNetwork::writeData(const float* data, unsigned int nSamples)
 {
 	assert(data != NULL);
 	assert(nSamples > 0U);
@@ -85,7 +109,7 @@ bool CFMNetwork::writeData(float* data, unsigned int nSamples)
 		return false;
 }
 
-bool CFMNetwork::writeUSRPData(float* data, unsigned int nSamples)
+bool CFMNetwork::writeUSRPData(const float* data, unsigned int nSamples)
 {
 	assert(data != NULL);
 	assert(nSamples > 0U);
@@ -159,28 +183,59 @@ bool CFMNetwork::writeUSRPData(float* data, unsigned int nSamples)
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
 
-bool CFMNetwork::writeRawData(float* data, unsigned int nSamples)
+bool CFMNetwork::writeRawData(const float* in, unsigned int nIn)
 {
-	assert(data != NULL);
-	assert(nSamples > 0U);
+	assert(in != NULL);
+	assert(nIn > 0U);
 
-	unsigned char buffer[1000U];
-	::memset(buffer, 0x00U, 1000U);
+	if (m_seqNo == 0U) {
+		bool ret = writeRawStart();
+		if (!ret)
+			return false;
+	}
+
+	unsigned char buffer[2000U];
 
 	unsigned int length = 0U;
 
-	for (unsigned int i = 0U; i < nSamples; i++) {
-		short val = short(data[i] * 32767.0F + 0.5F);			// Changing audio format from float to S16LE
+	if (m_sampleRate != MMDVM_SAMPLERATE) {
+		unsigned int nOut = (nIn * m_sampleRate) / MMDVM_SAMPLERATE;
 
-		buffer[length++] = (val >> 0) & 0xFFU;
-		buffer[length++] = (val >> 8) & 0xFFU;
+		float out[1000U];
 
-		buffer[length++] = (val >> 0) & 0xFFU;
-		buffer[length++] = (val >> 8) & 0xFFU;
+		SRC_DATA data;
+		data.data_in       = in;
+		data.data_out      = out;
+		data.input_frames  = nIn;
+		data.output_frames = nOut;
+		data.end_of_input  = 0;
+		data.src_ratio     = float(m_sampleRate) / float(MMDVM_SAMPLERATE);
+
+		int ret = ::src_process(m_resampler, &data);
+		if (ret != 0) {
+			LogError("Error from the write resampler - %d - %s", ret, ::src_strerror(ret));
+			return false;
+		}
+
+		for (unsigned int i = 0U; i < nOut; i++) {
+			short val = short(out[i] * 32767.0F + 0.5F);	// Changing audio format from float to S16LE
+
+			buffer[length++] = (val >> 0) & 0xFFU;
+			buffer[length++] = (val >> 8) & 0xFFU;
+		}
+	} else {
+		for (unsigned int i = 0U; i < nIn; i++) {
+			short val = short(in[i] * 32767.0F + 0.5F);	// Changing audio format from float to S16LE
+
+			buffer[length++] = (val >> 0) & 0xFFU;
+			buffer[length++] = (val >> 8) & 0xFFU;
+		}
 	}
 
 	if (m_debug)
 		CUtils::dump(1U, "FM Network Data Sent", buffer, length);
+
+	m_seqNo++;
 
 	return m_socket.write(buffer, length, m_addr, m_addrLen);
 }
@@ -190,7 +245,7 @@ bool CFMNetwork::writeEnd()
 	if (m_protocol == FMNP_USRP)
 		return writeUSRPEnd();
 	else
-		return true;
+		return writeRawEnd();
 }
 
 bool CFMNetwork::writeUSRPEnd()
@@ -257,6 +312,21 @@ bool CFMNetwork::writeUSRPEnd()
 	}
 }
 
+bool CFMNetwork::writeRawEnd()
+{
+	m_seqNo = 0U;
+
+	if (m_fd != -1) {
+		size_t n = ::write(m_fd, "Z", 1);
+		if (n != 1) {
+			LogError("Cannot write to the squelch file: %s, errno=%d", m_squelchFile.c_str(), errno);
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void CFMNetwork::clock(unsigned int ms)
 {
 	unsigned char buffer[BUFFER_LENGTH];
@@ -268,9 +338,16 @@ void CFMNetwork::clock(unsigned int ms)
 		return;
 
 	// Check if the data is for us
-	if (!CUDPSocket::match(addr, m_addr)) {
-		LogMessage("FM packet received from an invalid source");
-		return;
+	if (m_protocol == FMNP_USRP) {
+		if (!CUDPSocket::match(addr, m_addr, IMT_ADDRESS_AND_PORT)) {
+			LogMessage("FM packet received from an invalid source");
+			return;
+		}
+	} else {
+		if (!CUDPSocket::match(addr, m_addr, IMT_ADDRESS_ONLY)) {
+			LogMessage("FM packet received from an invalid source");
+			return;
+		}
 	}
 
 	if (!m_enabled)
@@ -296,38 +373,64 @@ void CFMNetwork::clock(unsigned int ms)
 		if (type == 0U)
 			m_buffer.addData(buffer + 32U, length - 32U);
 	} else if (m_protocol == FMNP_RAW) {
-		for (int i = 0U; i < length; i += 4U) {
-			unsigned char data[2U];
-
-			data[0U] = buffer[i + 0];
-			data[1U] = buffer[i + 1];
-
-			m_buffer.addData(data, 2U);
-		}
+		m_buffer.addData(buffer, length);
 	}
 }
 
-unsigned int CFMNetwork::readData(float* data, unsigned int nSamples)
+unsigned int CFMNetwork::readData(float* out, unsigned int nOut)
 {
-	assert(data != NULL);
-	assert(nSamples > 0U);
+	assert(out != NULL);
+	assert(nOut > 0U);
 
 	unsigned int bytes = m_buffer.dataSize() / sizeof(unsigned short);
 	if (bytes == 0U)
 		return 0U;
 
-	if (bytes < nSamples)
-		nSamples = bytes;
+	if ((m_protocol == FMNP_RAW) && (m_sampleRate != MMDVM_SAMPLERATE)) {
+		unsigned int nIn = (nOut * m_sampleRate) / MMDVM_SAMPLERATE;
 
-	unsigned char buffer[1500U];
-	m_buffer.getData(buffer, nSamples * sizeof(unsigned short));
+		if (bytes < nIn) {
+			nIn = bytes;
+			nOut = (nIn * MMDVM_SAMPLERATE) / m_sampleRate;
+		}
 
-	for (unsigned int i = 0U; i < nSamples; i++) {
-		short val = ((buffer[i * 2U + 0U] & 0xFFU) << 0) + ((buffer[i * 2U + 1U] & 0xFFU) << 8);
-		data[i] = float(val) / 65536.0F;
+		unsigned char buffer[2000U];
+		m_buffer.getData(buffer, nIn * sizeof(unsigned short));
+
+		float in[1000U];
+
+		for (unsigned int i = 0U; i < nIn; i++) {
+			short val = ((buffer[i * 2U + 0U] & 0xFFU) << 0) + ((buffer[i * 2U + 1U] & 0xFFU) << 8);
+			in[i] = float(val) / 65536.0F;
+		}
+
+		SRC_DATA data;
+		data.data_in       = in;
+		data.data_out      = out;
+		data.input_frames  = nIn;
+		data.output_frames = nOut;
+		data.end_of_input  = 0;
+		data.src_ratio     = float(MMDVM_SAMPLERATE) / float(m_sampleRate);
+
+		int ret = ::src_process(m_resampler, &data);
+		if (ret != 0) {
+			LogError("Error from the read resampler - %d - %s", ret, ::src_strerror(ret));
+			return false;
+		}
+	} else {
+		if (bytes < nOut)
+			nOut = bytes;
+
+		unsigned char buffer[1500U];
+		m_buffer.getData(buffer, nOut * sizeof(unsigned short));
+
+		for (unsigned int i = 0U; i < nOut; i++) {
+			short val = ((buffer[i * 2U + 0U] & 0xFFU) << 0) + ((buffer[i * 2U + 1U] & 0xFFU) << 8);
+			out[i] = float(val) / 65536.0F;
+		}
 	}
 
-	return nSamples;
+	return nOut;
 }
 
 void CFMNetwork::reset()
@@ -338,6 +441,11 @@ void CFMNetwork::reset()
 void CFMNetwork::close()
 {
 	m_socket.close();
+
+	if (m_fd != -1) {
+		::close(m_fd);
+		m_fd = -1;
+	}
 
 	LogMessage("Closing FM network connection");
 }
@@ -448,3 +556,17 @@ bool CFMNetwork::writeUSRPStart()
 		return true;
 	}
 }
+
+bool CFMNetwork::writeRawStart()
+{
+	if (m_fd != -1) {
+		size_t n = ::write(m_fd, "O", 1);
+		if (n != 1) {
+			LogError("Cannot write to the squelch file: %s, errno=%d", m_squelchFile.c_str(), errno);
+			return false;
+		}
+	}
+
+	return true;
+}
+
