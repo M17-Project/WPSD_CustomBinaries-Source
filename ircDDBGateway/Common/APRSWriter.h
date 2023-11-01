@@ -35,11 +35,12 @@
 
 class CAPRSEntry {
 public:
-	CAPRSEntry(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+	CAPRSEntry(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& symbol);
 	~CAPRSEntry();
 
 	wxString getCallsign() const;
 	wxString getBand() const;
+	wxString getSymbol() const;
 	double   getFrequency() const;
 	double   getOffset() const;
 	double   getRange() const;
@@ -56,6 +57,7 @@ public:
 private:
 	wxString        m_callsign;
 	wxString        m_band;
+	wxString	m_aprsSymbol;
 	double          m_frequency;
 	double          m_offset;
 	double          m_range;
@@ -71,14 +73,14 @@ WX_DECLARE_STRING_HASH_MAP(CAPRSEntry*, CEntry_t);
 
 class CAPRSWriter {
 public:
-	CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway);
+	CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway, const wxString& symbol);
 	~CAPRSWriter();
 
 	bool open();
 
-	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl);
+	void setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& symbol);
 
-	void setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port);
+	void setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port, const wxString& symbol);
 
 	void writeHeader(const wxString& callsign, const CHeaderData& header);
 
@@ -95,6 +97,7 @@ private:
 	in_addr            m_aprsAddress;
 	unsigned int       m_aprsPort;
 	CUDPReaderWriter   m_aprsSocket;
+	wxString	   m_aprsSymbol;
 #if defined(USE_GPSD)
 	bool               m_gpsdEnabled;
 	wxString           m_gpsdAddress;

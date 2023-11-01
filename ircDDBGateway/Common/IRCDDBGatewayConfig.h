@@ -59,8 +59,8 @@ public:
 	void setIrcDDB3(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 	void setIrcDDB4(bool enabled, const wxString& hostname, const wxString& username, const wxString& password);
 
-	void getDPRS(bool& enabled, wxString& address, unsigned int& port) const;
-	void setDPRS(bool enabled, const wxString& address, unsigned int port);
+	void getDPRS(bool& enabled, wxString& address, unsigned int& port, wxString& symbol) const;
+	void setDPRS(bool enabled, const wxString& address, unsigned int port, const wxString& symbol);
 
 	void getDExtra(bool& enabled, unsigned int& maxDongles) const;
 	void setDExtra(bool enabled, unsigned int maxDongles);
@@ -236,6 +236,7 @@ private:
 	wxString      m_ircddbPassword4;
 	bool          m_aprsEnabled;
 	wxString      m_aprsAddress;
+	wxString      m_aprsSymbol;
 	unsigned int  m_aprsPort;
 	bool          m_dextraEnabled;
 	unsigned int  m_dextraMaxDongles;

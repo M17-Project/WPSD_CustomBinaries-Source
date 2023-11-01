@@ -21,7 +21,7 @@
 #include "DStarDefines.h"
 #include "Defs.h"
 
-CAPRSEntry::CAPRSEntry(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl) :
+CAPRSEntry::CAPRSEntry(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& symbol) :
 m_callsign(callsign),
 m_band(band),
 m_frequency(frequency),
@@ -32,7 +32,8 @@ m_longitude(longitude),
 m_agl(agl),
 m_timer(1000U, 10U),
 m_first(true),
-m_collector(NULL)
+m_collector(NULL),
+m_aprsSymbol(symbol)
 {
 	m_callsign.Trim();
 
@@ -52,6 +53,11 @@ wxString CAPRSEntry::getCallsign() const
 wxString CAPRSEntry::getBand() const
 {
 	return m_band;
+}
+
+wxString CAPRSEntry::getSymbol() const
+{
+        return m_aprsSymbol;
 }
 
 double CAPRSEntry::getFrequency() const
@@ -118,13 +124,14 @@ bool CAPRSEntry::isOK()
 	}
 }
 
-CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway) :
+CAPRSWriter::CAPRSWriter(const wxString& address, unsigned int port, const wxString& gateway, const wxString& symbol) :
 m_idTimer(1000U),
 m_gateway(),
 m_array(),
 m_aprsAddress(),
 m_aprsPort(port),
-m_aprsSocket()
+m_aprsSocket(),
+m_aprsSymbol()
 #if defined(USE_GPSD)
 ,m_gpsdEnabled(false),
 m_gpsdAddress(),
@@ -151,16 +158,16 @@ CAPRSWriter::~CAPRSWriter()
 	m_array.clear();
 }
 
-void CAPRSWriter::setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl)
+void CAPRSWriter::setPortFixed(const wxString& callsign, const wxString& band, double frequency, double offset, double range, double latitude, double longitude, double agl, const wxString& symbol)
 {
-	wxString temp = callsign;
-	temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
-	temp.Append(band);
+    wxString temp = callsign;
+    temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
+    temp.Append(band);
 
-	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, latitude, longitude, agl);
+    m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, latitude, longitude, agl, symbol);
 }
 
-void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port)
+void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, double frequency, double offset, double range, const wxString& address, const wxString& port, const wxString& symbol)
 {
 #if defined(USE_GPSD)
 	wxASSERT(!address.IsEmpty());
@@ -170,7 +177,7 @@ void CAPRSWriter::setPortGPSD(const wxString& callsign, const wxString& band, do
 	temp.resize(LONG_CALLSIGN_LENGTH - 1U, wxT(' '));
 	temp.Append(band);
 
-	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, 0.0, 0.0, 0.0);
+	m_array[temp] = new CAPRSEntry(callsign, band, frequency, offset, range, 0.0, 0.0, 0.0, symbol);
 
 	m_gpsdEnabled = true;
 	m_gpsdAddress = address;

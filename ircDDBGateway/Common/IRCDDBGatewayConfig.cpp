@@ -131,6 +131,7 @@ const wxString  KEY_IRCDDB_PASSWORD4     = wxT("ircddbPassword4");
 const wxString  KEY_APRS_ENABLED         = wxT("aprsEnabled");
 const wxString  KEY_APRS_ADDRESS         = wxT("aprsAddress");
 const wxString  KEY_APRS_PORT            = wxT("aprsPort");
+const wxString  KEY_APRS_SYMBOL          = wxT("aprsSymbol");
 const wxString  KEY_DEXTRA_ENABLED       = wxT("dextraEnabled");
 const wxString  KEY_DEXTRA_MAXDONGLES    = wxT("dextraMaxDongles");
 const wxString  KEY_DPLUS_ENABLED        = wxT("dplusEnabled");
@@ -255,6 +256,7 @@ const wxString     DEFAULT_IRCDDB_PASSWORD4		 = wxEmptyString;
 const bool         DEFAULT_APRS_ENABLED          = false;
 const wxString     DEFAULT_APRS_ADDRESS          = wxT("127.0.0.1");
 const unsigned int DEFAULT_APRS_PORT             = 8673U;
+const wxString     DEFAULT_APRS_SYMBOL           = wxT("\"Wi\"");
 const bool         DEFAULT_DEXTRA_ENABLED        = true;
 const unsigned int DEFAULT_DEXTRA_MAXDONGLES     = 5U;
 const bool         DEFAULT_DPLUS_ENABLED         = false;
@@ -408,6 +410,7 @@ m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
 m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
+m_aprsSymbol(DEFAULT_APRS_SYMBOL),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
 m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
@@ -734,6 +737,8 @@ m_y(DEFAULT_WINDOW_Y)
 	m_config->Read(m_name + KEY_APRS_PORT, &temp, long(DEFAULT_APRS_PORT));
 	m_aprsPort = (unsigned int)temp;
 
+	m_config->Read(m_name + KEY_APRS_SYMBOL, &m_aprsSymbol, DEFAULT_APRS_SYMBOL);
+
 	m_config->Read(m_name + KEY_DEXTRA_ENABLED, &m_dextraEnabled, DEFAULT_DEXTRA_ENABLED);
 
 	m_config->Read(m_name + KEY_DEXTRA_MAXDONGLES, &temp, long(DEFAULT_DEXTRA_MAXDONGLES));
@@ -1027,6 +1032,7 @@ m_ircddbPassword4(DEFAULT_IRCDDB_PASSWORD4),
 m_aprsEnabled(DEFAULT_APRS_ENABLED),
 m_aprsAddress(DEFAULT_APRS_ADDRESS),
 m_aprsPort(DEFAULT_APRS_PORT),
+m_aprsSymbol(DEFAULT_APRS_SYMBOL),
 m_dextraEnabled(DEFAULT_DEXTRA_ENABLED),
 m_dextraMaxDongles(DEFAULT_DEXTRA_MAXDONGLES),
 m_dplusEnabled(DEFAULT_DPLUS_ENABLED),
@@ -1401,6 +1407,8 @@ m_y(DEFAULT_WINDOW_Y)
 		} else if (key.IsSameAs(KEY_APRS_PORT)) {
 			val.ToULong(&temp2);
 			m_aprsPort = (unsigned int)temp2;
+		} else if (key.IsSameAs(KEY_APRS_SYMBOL)) {
+			m_aprsSymbol = val;
 		} else if (key.IsSameAs(KEY_DEXTRA_ENABLED)) {
 			val.ToLong(&temp1);
 			m_dextraEnabled = temp1 == 1L;
@@ -1888,18 +1896,20 @@ void CIRCDDBGatewayConfig::setIrcDDB4(bool enabled, const wxString& hostname, co
 	m_ircddbPassword4 = password;
 }
 
-void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& address, unsigned int& port) const
+void CIRCDDBGatewayConfig::getDPRS(bool& enabled, wxString& address, unsigned int& port, wxString& symbol) const
 {
 	enabled = m_aprsEnabled;
 	address = m_aprsAddress;
 	port    = m_aprsPort;
+	symbol  = m_aprsSymbol;
 }
 
-void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& address, unsigned int port)
+void CIRCDDBGatewayConfig::setDPRS(bool enabled, const wxString& address, unsigned int port, const wxString& symbol)
 {
 	m_aprsEnabled  = enabled;
 	m_aprsAddress = address;
 	m_aprsPort     = port;
+	m_aprsSymbol   = symbol;
 }
 
 void CIRCDDBGatewayConfig::getDExtra(bool& enabled, unsigned int& maxDongles) const
@@ -2380,6 +2390,7 @@ bool CIRCDDBGatewayConfig::write()
 	m_config->Write(m_name + KEY_IRCDDB_PASSWORD4, m_ircddbPassword4);
 	m_config->Write(m_name + KEY_APRS_ENABLED, m_aprsEnabled);
 	m_config->Write(m_name + KEY_APRS_ADDRESS, m_aprsAddress);
+	m_config->Write(m_name + KEY_APRS_SYMBOL, m_aprsSymbol);
 	m_config->Write(m_name + KEY_APRS_PORT, long(m_aprsPort));
 	m_config->Write(m_name + KEY_DEXTRA_ENABLED, m_dextraEnabled);
 	m_config->Write(m_name + KEY_DEXTRA_MAXDONGLES, long(m_dextraMaxDongles));
@@ -2589,6 +2600,7 @@ bool CIRCDDBGatewayConfig::write()
 	buffer.Printf("%s=%s", KEY_IRCDDB_PASSWORD4.c_str(), m_ircddbPassword4.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_APRS_ENABLED.c_str(), m_aprsEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%s"), KEY_APRS_ADDRESS.c_str(), m_aprsAddress.c_str()); file.AddLine(buffer);
+	buffer.Printf(wxT("%s=%s"), KEY_APRS_SYMBOL.c_str(), m_aprsSymbol.c_str()); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_APRS_PORT.c_str(), m_aprsPort); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%d"), KEY_DEXTRA_ENABLED.c_str(), m_dextraEnabled ? 1 : 0); file.AddLine(buffer);
 	buffer.Printf(wxT("%s=%u"), KEY_DEXTRA_MAXDONGLES.c_str(), m_dextraMaxDongles); file.AddLine(buffer);
