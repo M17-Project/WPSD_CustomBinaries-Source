@@ -412,13 +412,43 @@ void CAPRSWriter::sendIdFramesFixed()
 		lon.Replace(wxT(","), wxT("."));
 
 		wxString output;
-		output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-S>APDG01:>Powered by WPSD (https://wpsd.radio)\r\n"),
-			m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
-			tm->tm_mday, tm->tm_hour, tm->tm_min,
-			lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
-			lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
-			entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
-			entry->getCallsign().c_str());
+
+		wxString symbol = entry->getSymbol();
+
+		if (symbol.length() >= 2) {
+		    std::string symbolStr = symbol.ToStdString(); // Convert wxString to std::string
+		    if (symbolStr.length() >= 2) {
+		        // Extract individual characters from the symbol string
+		        char char1 = symbolStr[0];
+		        char char2 = symbolStr[1];
+
+		    	output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%c%cRNG%04.0lf/A=%06.0lf %s %s\r\n%s-S>APDG01:>Powered by WPSD (https://wpsd.radio)\r\n"),
+		    	    char1, // 1st aprs symb. char.
+			    char2, // 2nd aprs symb. char.
+		    	    m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+		    	    tm->tm_mday, tm->tm_hour, tm->tm_min,
+		    	    lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
+		    	    lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
+		    	    entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
+		    	    entry->getCallsign().c_str());
+		    } else {
+		    	output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-S>APDG01:>Powered by WPSD (https://wpsd.radio)\r\n"),
+                            m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                            tm->tm_mday, tm->tm_hour, tm->tm_min,
+                            lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
+                            lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
+                            entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
+                            entry->getCallsign().c_str());
+		    }
+		} else {
+		    output.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-S>APDG01:>Powered by WPSD (https://wpsd.radio)\r\n"),
+                        m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                        tm->tm_mday, tm->tm_hour, tm->tm_min,
+                        lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
+                        lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
+                        entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
+                        entry->getCallsign().c_str());
+		}
 
 		char ascii[300U];
 		::memset(ascii, 0x00, 300U);
@@ -430,20 +460,45 @@ void CAPRSWriter::sendIdFramesFixed()
 		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
-			output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-%s>APDG02:>Powered by WPSD (https://wpsd.radio)\r\n"),
+                    if (symbol.length() >= 2) {
+                    	std::string symbolStr = symbol.ToStdString(); // Convert wxString to std::string
+                    	if (symbolStr.length() >= 2) {
+                            // Extract individual characters from the symbol string
+                            char char1 = symbolStr[0];
+                            char char2 = symbolStr[1];
+
+			    output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%c%c%s%c%cRNG%04.0lf/A=%06.0lf %s %s\r\n%s-%s>APDG02:>Powered by WPSD (https://wpsd.radio)\r\n"),
+                            	char1, // 1st aprs symb. char.
+                            	char2, // 2nd aprs symb. char.
+                            	entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                            	lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
+                            	lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
+                            	entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
+                            	entry->getCallsign().c_str(), entry->getBand().c_str());
+		    	} else { 
+			    output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-%s>APDG02:>Powered by WPSD (https://wpsd.radio)\r\n"),
 				entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 				lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
 				lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
 				entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
 				entry->getCallsign().c_str(), entry->getBand().c_str());
+		    	}
+		    } else {
+                    	output.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ciRNG%04.0lf/A=%06.0lf %s %s\r\n%s-%s>APDG02:>Powered by WPSD (https://wpsd.radio)\r\n"),
+                            entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                            lat.c_str(), (entry->getLatitude() < 0.0F)  ? wxT('S') : wxT('N'),
+                            lon.c_str(), (entry->getLongitude() < 0.0F) ? wxT('W') : wxT('E'),
+                            entry->getRange() * 0.6214, entry->getAGL() * 3.28, band.c_str(), desc.c_str(),
+                            entry->getCallsign().c_str(), entry->getBand().c_str());
+		    }
 
-			::memset(ascii, 0x00, 300U);
-			for (unsigned int i = 0U; i < output.Len(); i++)
-				ascii[i] = output.GetChar(i);
+		    ::memset(ascii, 0x00, 300U);
+		    for (unsigned int i = 0U; i < output.Len(); i++)
+			ascii[i] = output.GetChar(i);
 
-			wxLogDebug(wxT("APRS ==> %s"), output.c_str());
+		    wxLogDebug(wxT("APRS ==> %s"), output.c_str());
 
-			m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
+		    m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 		}
 	}
 }
@@ -559,13 +614,39 @@ void CAPRSWriter::sendIdFramesMobile()
 		lon.Replace(wxT(","), wxT("."));
 
 		wxString output1;
-		output1.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ci/A=%06.0lf"),
+                wxString symbol = entry->getSymbol();
+
+                if (symbol.length() >= 2) {
+                    std::string symbolStr = symbol.ToStdString(); // Convert wxString to std::string
+                    if (symbolStr.length() >= 2) {
+                        // Extract individual characters from the symbol string
+                        char char1 = symbolStr[0];
+                        char char2 = symbolStr[1];
+
+			output1.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%c%c%s%c%c/A=%06.0lf"),
+                            char1, // 1st aprs symb. char.
+                            char2, // 2nd aprs symb. char.
+                            m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                            tm->tm_mday, tm->tm_hour, tm->tm_min,
+                            lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+                            lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+                            rawAltitude * 3.28);
+		    } else {
+			output1.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ci/A=%06.0lf"),
+			    m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+			    tm->tm_mday, tm->tm_hour, tm->tm_min,
+			    lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+			    lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+			    rawAltitude * 3.28);
+		    }
+		} else {
+		    output1.Printf(wxT("%s-S>APDG01,TCPIP*,qAC,%s-GS:;%-7s%-2s*%02d%02d%02dz%s%cW%s%ci/A=%06.0lf"),
 			m_gateway.c_str(), m_gateway.c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 			tm->tm_mday, tm->tm_hour, tm->tm_min,
 			lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
 			lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
 			rawAltitude * 3.28);
-
+		}
 		wxString output2;
 		if (bearingSet && velocitySet)
 			output2.Printf(wxT("%03.0lf/%03.0lf"), rawBearing, rawVelocity * 0.539957F);
@@ -588,17 +669,42 @@ void CAPRSWriter::sendIdFramesMobile()
 		m_aprsSocket.write((unsigned char*)ascii, (unsigned int)::strlen(ascii), m_aprsAddress, m_aprsPort);
 
 		if (entry->getBand().Len() == 1U) {
-			if (altitudeSet)
+			if (altitudeSet) {
+                	    wxString symbol = entry->getSymbol();
+
+                	    if (symbol.length() >= 2) {
+                    		std::string symbolStr = symbol.ToStdString(); // Convert wxString to std::string
+                    		if (symbolStr.length() >= 2) {
+                        	    // Extract individual characters from the symbol string
+                        	    char char1 = symbolStr[0];
+                        	    char char2 = symbolStr[1];
+				    output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%c%c%s%c%c/A=%06.0lf"),
+                            		char1, // 1st aprs symb. char.
+                            		char2, // 2nd aprs symb. char.
+                                        entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                                        lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+                                        lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+                                        rawAltitude * 3.28);
+				} else {
+				    output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ci/A=%06.0lf"),
+                                        entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
+                                        lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
+                                        lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
+                                        rawAltitude * 3.28);
+				}
+			    } else {
 				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ci/A=%06.0lf"),
 					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
 					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'),
 					rawAltitude * 3.28);
-			else
+			    }
+			} else {
 				output1.Printf(wxT("%s-%s>APDG02,TCPIP*,qAC,%s-%sS:!%s%cW%s%ci"),
 					entry->getCallsign().c_str(), entry->getBand().c_str(), entry->getCallsign().c_str(), entry->getBand().c_str(),
 					lat.c_str(), (rawLatitude < 0.0)  ? wxT('S') : wxT('N'),
 					lon.c_str(), (rawLongitude < 0.0) ? wxT('W') : wxT('E'));
+			}
 
 			::memset(ascii, 0x00, 300U);
 			unsigned int n = 0U;
