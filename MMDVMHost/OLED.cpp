@@ -373,7 +373,7 @@ void COLED::setIdleInt()
                 float tempFahrenheit = (tempCelsius * 9.0F / 5.0F) + 32.0F;
                 m_display.setCursor(0, OLED_LINE5);
                 m_display.setTextSize(1);
-	        m_display.printf("CPU Temp: %.0fF / %.0fC ", tempFahrenheit, tempCelsius);
+	        m_display.printf("CPU Temp: %.0fF/%.0fC ", tempFahrenheit, tempCelsius);
             }
         }
     }
@@ -823,7 +823,7 @@ void COLED::clearCWInt()
         float tempFahrenheit = (tempCelsius * 9.0F / 5.0F) + 32.0F;
         m_display.setCursor(0, OLED_LINE5);
         m_display.setTextSize(1);
-        m_display.printf("CPU Temp: %.0fF / %.0fC ", tempFahrenheit, tempCelsius);
+        m_display.printf("CPU Temp: %.0fF/%.0fC ", tempFahrenheit, tempCelsius);
     }
 
     m_display.setTextSize(1);
