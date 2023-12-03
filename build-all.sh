@@ -31,6 +31,10 @@ elif [ "$1" == "nogpsd" ]; then
   MAKEFILE="Makefile.buster" # no libgps, sunsetted now that libgps28 is in buster backports
 fi
 
+# update version date str.
+find . -name Version.h -exec sed -i -e "/const char\* VERSION =/ s/\"[^\"]*\"/\"$(date +'%Y%m%d')_WPSD\"/" -e "/const wxString VERSION =/ s/wxT(\"[^\"]*\");/wxT(\"$(date +'%Y%m%d')_WPSD\");/" {} \;
+
+# build!
 cd $SRC_DIR/APRSGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make clean && \
      make -j$(nproc) -f Makefile.Pi.Adafruit && make -f Makefile.Pi.Adafruit install && make -f Makefile.Pi.Adafruit clean
