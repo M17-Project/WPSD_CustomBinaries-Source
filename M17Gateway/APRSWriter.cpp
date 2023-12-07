@@ -248,8 +248,11 @@ void CAPRSWriter::sendIdFrameFixed()
 #if defined(USE_GPSD)
 void CAPRSWriter::sendIdFrameMobile()
 {
+	bool latlonSet = false;
+
 	if (!::gps_waiting(&m_gpsdData, 0))
 		return;
+
 #if GPSD_API_MAJOR_VERSION >= 7
 	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
 		return;
@@ -263,8 +266,11 @@ void CAPRSWriter::sendIdFrameMobile()
 #else
 	if (m_gpsdData.status != STATUS_FIX)
 #endif
+	{
+		return;
+	}
 
-	bool latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
+	latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
 	bool altitudeSet = (m_gpsdData.set & ALTITUDE_SET) == ALTITUDE_SET;
 	bool velocitySet = (m_gpsdData.set & SPEED_SET) == SPEED_SET;
 	bool bearingSet  = (m_gpsdData.set & TRACK_SET) == TRACK_SET;
