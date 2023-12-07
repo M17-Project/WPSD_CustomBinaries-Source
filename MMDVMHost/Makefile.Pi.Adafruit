@@ -22,10 +22,10 @@ OBJECTS = \
 all:		MMDVMHost_Adafruit RemoteCommand
 
 MMDVMHost_Adafruit:	GitVersion.h $(OBJECTS) 
-			$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o MMDVMHost_Adafruit
+			$(CXX) $(OBJECTS) $(LDFLAGS) $(LIBS) -o MMDVMHost_Adafruit
 
 RemoteCommand:	Log.o RemoteCommand.o UDPSocket.o
-		$(CXX) Log.o RemoteCommand.o UDPSocket.o $(CFLAGS) $(LIBS) -o RemoteCommand
+		$(CXX) Log.o RemoteCommand.o UDPSocket.o $(LDFLAGS) $(LIBS) -o RemoteCommand
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
