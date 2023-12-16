@@ -857,7 +857,7 @@ int main(int argc, char *argv[])
     strcpy(OSname,"OS unknown"); readVersions("/etc/os-release");
     writelog(2,"Running on %s",OSname);
     readVersions("/etc/pistar-release");
-    if (strlen(WPSDver)>1) writelog(2,"W0CHP-PiStar-Dash v. #%s",WPSDver); else { strcpy(WPSDver,"Not WPSD!"); writelog(2,"%s",WPSDver); }
+    if (strlen(WPSDver)>1) writelog(2,"WPSD v. #%s",WPSDver); else { strcpy(WPSDver,"Not WPSD!"); writelog(2,"%s",WPSDver); }
 
     //Open port ASAP to prevent issues on slow boards (like Pi Zero) -- thanks to KE7FNS
     writelog(2,"Opening ports");
