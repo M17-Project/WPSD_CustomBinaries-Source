@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
             case 'V':
                 printf("\nNextionDriver version %s\n", NextionDriver_VERSION);
                 printf("Copyright (C) 2017...2023 ON7LDS. All rights reserved.\n");
-                printf("With modifications by W0CHP.\n\n");
+                printf("With modifications/enhancements by W0CHP & WPSD Project Team.\n\n");
                 return 0;
                 break;
             case 'v':
@@ -795,7 +795,7 @@ int main(int argc, char *argv[])
             case ':':
                 printf("\nNextionDriver version %s\n", NextionDriver_VERSION);
                 printf("Copyright (C) 2017...2023 ON7LDS. All rights reserved.\n");
-                printf("With modifications by W0CHP.\n\n");
+                printf("With modifications/enhancements by W0CHP & WPSD Project Team.\n\n");
                 printf("\nUsage: %s -c <MMDVM config file> [-f] [-d] [-h]\n\n", argv[0]);
                 printf("  -c\tspecify the MMDVM config file, which might be extended with the NetxtionDriver config\n");
                 printf("  -C\tspecify a second config file, which might have the NetxtionDriver config\n");

@@ -257,14 +257,14 @@ void basicFunctions() {
         if (TGindex>=0) {
             TGname=groups[TGindex].name;
             writelog(LOG_INFO,"Found %s",TGname);
-            sprintf(TXbuffer,"t9.txt=\"%s\"",TGname);
+            sprintf(TXbuffer,"t10.txt=\"%s\"",TGname);
         } else if (TGindex<0) {
             //is it maybe a user private call ?
             TGindex=search_user_index_for_ID(nr,users,0,nmbr_users-1);
             writelog(LOG_INFO,"- Found [%s] for ID %d",users[TGindex].data1,nr);
-            if (TGindex>=0) sprintf(TXbuffer,"t9.txt=\"Private %s\"",users[TGindex].data1);
+            if (TGindex>=0) sprintf(TXbuffer,"t10.txt=\"Private %s\"",users[TGindex].data1);
         } else {
-            sprintf(TXbuffer,"t9.txt=\"TG%d name not found\"",nr);
+            sprintf(TXbuffer,"t10.txt=\"TG%d name not found\"",nr);
         }
         sendCommand(TXbuffer);
     }
@@ -282,14 +282,14 @@ void basicFunctions() {
         if (TGindex>=0) {
             TGname=groups[TGindex].name;
             writelog(LOG_INFO,"Found %s",TGname);
-            sprintf(TXbuffer,"t8.txt=\"%s\"",TGname);
+            sprintf(TXbuffer,"t11.txt=\"%s\"",TGname);
         } else if (TGindex<0) {
             //is it maybe a user private call ?
             TGindex=search_user_index_for_ID(nr,users,0,nmbr_users-1);
             writelog(LOG_INFO,"- Found [%s] for ID %d",users[TGindex].data1,nr);
-            if (TGindex>=0) sprintf(TXbuffer,"t8.txt=\"Private %s\"",users[TGindex].data1);
+            if (TGindex>=0) sprintf(TXbuffer,"t11.txt=\"Private %s\"",users[TGindex].data1);
         } else {
-            sprintf(TXbuffer,"t8.txt=\"TG%d name not found\"",nr);
+            sprintf(TXbuffer,"t11.txt=\"TG%d name not found\"",nr);
         }
         sendCommand(TXbuffer);
     }
