@@ -1,15 +1,13 @@
-#sudo service cron stop
-#rpi-rw
+#!/bin/bash
 
-make -j4
+make -j$(nproc)
 mv MMDVMHost ../../W0CHP-PiStar-bin
 mv RemoteCommand ../../W0CHP-PiStar-bin
 
 make clean
 
-make -j4 -f Makefile.Pi.Adafruit
+make -j$(nproc) -f Makefile.Pi.Adafruit
 mv MMDVMHost_Adafruit ../../W0CHP-PiStar-bin
 make clean
 
-#sudo service cron start
 
