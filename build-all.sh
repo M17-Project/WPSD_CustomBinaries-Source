@@ -36,8 +36,7 @@ find . -name Version.h -exec sed -i -e "/const char\* VERSION =/ s/\"[^\"]*\"/\"
 
 # build!
 cd $SRC_DIR/APRSGateway && make clean && make -j$(nproc) && make install && make clean
-cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make clean && \
-     make -j$(nproc) -f Makefile.Pi.Adafruit && make -f Makefile.Pi.Adafruit install && make -f Makefile.Pi.Adafruit clean
+cd $SRC_DIR/MMDVMHost && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/DAPNETGateway && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/DMRGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/AMBEServer && make clean && make -j$(nproc) && make install && make clean
