@@ -24,9 +24,9 @@
 const wxString VENDOR_NAME = wxT("W0CHP");
 
 #if defined(__WXDEBUG__)
-const wxString VERSION = wxT("20240202_WPSD");
+const wxString VERSION = wxT("20240207_WPSD");
 #else
-const wxString VERSION = wxT("20240202_WPSD");
+const wxString VERSION = wxT("20240207_WPSD");
 #endif
 
 #endif
