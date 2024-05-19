@@ -1,5 +1,7 @@
 # This makefile is for use with the Raspberry Pi. The wiringpi library is needed.
 
+# If you have the resampler library installed, add -DHAS_SRC to the CFLAGS line, and -lsamplerate to the LIBS line.
+
 CC      = cc
 CXX     = c++
 CFLAGS  = -g -O3 -Wall -std=c++0x -pthread -DHAVE_LOG_H -DRASPBERRY_PI -I/usr/local/include
@@ -30,8 +32,8 @@ RemoteCommand:	Log.o RemoteCommand.o UDPSocket.o
 
 .PHONY install:
 install: all
-		install -m 755 MMDVMHost $(HOME)/dev/W0CHP-PiStar-bin/
-		install -m 755 RemoteCommand $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 MMDVMHost /usr/local/bin/
+		install -m 755 RemoteCommand /usr/local/bin/
 
 .PHONY install-service:
 install-service: install /etc/MMDVM.ini
@@ -52,7 +54,7 @@ install-service: install /etc/MMDVM.ini
 uninstall-service:
 		@systemctl stop mmdvmhost.service || true
 		@systemctl disable mmdvmhost.service || true
-		@rm -f $(HOME)/dev/W0CHP-PiStar-bin/MMDVMHost || true
+		@rm -f /usr/local/bin/MMDVMHost || true
 		@rm -f /lib/systemd/system/mmdvmhost.service || true
 
 clean:

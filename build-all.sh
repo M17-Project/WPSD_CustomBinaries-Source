@@ -48,7 +48,6 @@ cd $SRC_DIR/MMDVM_CM/DMR2NXDN && make clean && make -j$(nproc) && make install &
 cd $SRC_DIR/MMDVM_CM/YSF2DMR && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/YSF2P25 && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/MMDVM_CM/YSF2NXDN && make clean && make -j$(nproc) && make install && make clean
-#cd $SRC_DIR/MMDVM_CM/NXDN2DMR && make clean && make -j$(nproc) && make install && make clean
 cd $SRC_DIR/NXDNClients/NXDNGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean
 cd $SRC_DIR/NXDNClients/NXDNParrot && make clean && make -j$(nproc) && make clean
 cd $SRC_DIR/NXDNClients/NXDNGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean

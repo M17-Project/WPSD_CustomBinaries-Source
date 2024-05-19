@@ -1,8 +1,9 @@
 # This makefile is for use with the Raspberry Pi when using an OLED display. The wiringpi library is not needed.
+# If you have the resampler library installed, add -DHAS_SRC to the CFLAGS line, and -lsamplerate to the LIBS line.
 
 CC      = cc
 CXX     = c++
-CFLAGS  = -s -O3 -Wall -std=c++0x -pthread -DHAVE_LOG_H -DOLED -DHD44780 -DPCF8574_DISPLAY -DREMOTE_COMMAND_NO_LOG -I/usr/local/include
+CFLAGS  = -s -O3 -Wall -std=c++0x -pthread -DHAVE_LOG_H -DOLED -DHD44780 -DPCF8574_DISPLAY -DREMOTE_COMMAND_NO_LOG -I/usr/local/include -DHAS_SRC
 LIBS    = -lwiringPi -lwiringPiDev -lArduiPi_OLED -lpthread -lutil -lsamplerate
 
 # If you use NetBSD, add following CFLAGS

@@ -36,6 +36,9 @@
 #include <sstream>
 #include <iostream> // for cpu temp
 
+#include <thread>
+#include <chrono>
+
 #include "ArduiPi_OLED_lib.h"
 #include "Adafruit_GFX.h"
 #include "ArduiPi_OLED.h"

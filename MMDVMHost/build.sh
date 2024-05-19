@@ -6,8 +6,3 @@ mv RemoteCommand ../../W0CHP-PiStar-bin
 
 make clean
 
-#make -j$(nproc) -f Makefile.Pi.Adafruit
-#mv MMDVMHost_Adafruit ../../W0CHP-PiStar-bin
-#make clean
-
-
