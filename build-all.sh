@@ -16,7 +16,7 @@ fi
 #fi
 
 SRC_DIR=$HOME/dev/WPSD_CustomBinaries-Source
-DEST_DIR=$HOME/dev/W0CHP-PiStar-bin
+DEST_DIR=$HOME/dev/WPSD-Binaries
 
 ## Switch to the respective branch in the DEST_DIR repository
 #if ! git -C "$DEST_DIR" checkout "$BRANCH"; then
