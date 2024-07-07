@@ -59,4 +59,4 @@ clean:
 	rm -f teensy_loader_cli teensy_loader_cli.exe*
 
 install:
-	install -m 755 teensy_loader_cli $(HOME)/dev/W0CHP-PiStar-bin/
+	install -m 755 teensy_loader_cli $(HOME)/dev/WPSD-Binaries/

@@ -15,7 +15,7 @@ USRP2P25:	$(OBJECTS)
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
 install:
-		install -m 755 USRP2P25 $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 USRP2P25 $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) USRP2P25 *.o *.d *.bak *~

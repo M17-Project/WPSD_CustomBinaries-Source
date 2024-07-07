@@ -19,7 +19,7 @@ DMR2YSF:	$(OBJECTS)
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
 install:
-		install -m 755 DMR2YSF $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 DMR2YSF $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) DMR2YSF *.o *.d *.bak *~

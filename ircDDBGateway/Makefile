@@ -12,7 +12,7 @@ else
 export DATADIR ?= /usr/local/etc
 export LOGDIR  ?= /var/log/pi-star
 export CONFDIR ?= /etc
-export BINDIR  ?= $(HOME)/dev/W0CHP-PiStar-bin/
+export BINDIR  ?= $(HOME)/dev/WPSD-Binaries/
 endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet

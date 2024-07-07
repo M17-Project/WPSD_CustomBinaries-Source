@@ -15,7 +15,7 @@ P25Parrot:	$(OBJECTS)
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
 install:
-		install -m 755 P25Parrot $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 P25Parrot $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) P25Parrot *.o *.d *.bak *~

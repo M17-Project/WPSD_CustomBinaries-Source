@@ -16,7 +16,7 @@ USRP2YSF:	$(OBJECTS)
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
 install:
-		install -m 755 USRP2YSF $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 USRP2YSF $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) USRP2YSF *.o *.d *.bak *~

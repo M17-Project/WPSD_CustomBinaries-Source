@@ -15,7 +15,7 @@ clean:
 	$(RM) -f AMBEserver *~ *.bak *.o GitVersion.h
 
 install:
-	install -m 755 AMBEserver $(HOME)/dev/W0CHP-PiStar-bin/
+	install -m 755 AMBEserver $(HOME)/dev/WPSD-Binaries/
 
 init-install:
 	install init.d/AMBEserver /etc/init.d

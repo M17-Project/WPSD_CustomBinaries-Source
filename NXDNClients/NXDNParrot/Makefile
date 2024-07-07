@@ -15,7 +15,7 @@ NXDNParrot:	$(OBJECTS)
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
 install:
-		install -m 755 NXDNParrot $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 NXDNParrot $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) NXDNParrot *.o *.d *.bak *~

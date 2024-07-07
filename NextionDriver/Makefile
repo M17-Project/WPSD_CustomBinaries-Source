@@ -13,7 +13,7 @@ NextionDriver:
 
 .PHONY install:
 install: all
-		install -m 755 NextionDriver $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 NextionDriver $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) NextionDriver *.o *.d *.bak *~

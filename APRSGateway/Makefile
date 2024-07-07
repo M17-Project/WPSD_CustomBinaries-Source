@@ -22,7 +22,7 @@ FORCE:
 
 
 install:
-		install -m 755 APRSGateway $(HOME)/dev/W0CHP-PiStar-bin/
+		install -m 755 APRSGateway $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) APRSGateway *.o *.d *.bak *~ GitVersion.h
