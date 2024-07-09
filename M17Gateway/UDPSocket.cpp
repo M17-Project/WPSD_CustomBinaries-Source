@@ -36,14 +36,24 @@
 CUDPSocket::CUDPSocket(const std::string& address, unsigned short port) :
 m_localAddress(address),
 m_localPort(port),
-m_fd(-1)
+#if defined(_WIN32) || defined(_WIN64)
+m_fd(INVALID_SOCKET),
+#else
+m_fd(-1),
+#endif
+m_af(AF_UNSPEC)
 {
 }
 
 CUDPSocket::CUDPSocket(unsigned short port) :
 m_localAddress(),
 m_localPort(port),
-m_fd(-1)
+#if defined(_WIN32) || defined(_WIN64)
+m_fd(INVALID_SOCKET),
+#else
+m_fd(-1),
+#endif
+m_af(AF_UNSPEC)
 {
 }
 
@@ -95,7 +105,9 @@ int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockadd
 		return err;
 	}
 
-	::memcpy(&addr, res->ai_addr, address_length = res->ai_addrlen);
+	address_length = (unsigned int)res->ai_addrlen;
+
+	::memcpy(&addr, res->ai_addr, address_length);
 
 	::freeaddrinfo(res);
 
@@ -151,12 +163,18 @@ bool CUDPSocket::isNone(const sockaddr_storage& addr)
 
 bool CUDPSocket::open(const sockaddr_storage& address)
 {
-	return open(address.ss_family);
+	m_af = address.ss_family;
+
+	return open();
 }
 
-bool CUDPSocket::open(unsigned int af)
+bool CUDPSocket::open()
 {
+#if defined(_WIN32) || defined(_WIN64)
+	assert(m_fd == INVALID_SOCKET);
+#else
 	assert(m_fd == -1);
+#endif
 
 	sockaddr_storage addr;
 	unsigned int addrlen;
@@ -164,7 +182,7 @@ bool CUDPSocket::open(unsigned int af)
 
 	::memset(&hints, 0, sizeof(hints));
 	hints.ai_flags  = AI_PASSIVE;
-	hints.ai_family = af;
+	hints.ai_family = m_af;
 
 	// To determine protocol family, call lookup() on the local address first.
 	int err = lookup(m_localAddress, m_localPort, addr, addrlen, hints);
@@ -173,7 +191,9 @@ bool CUDPSocket::open(unsigned int af)
 		return false;
 	}
 
-	m_fd = ::socket(addr.ss_family, SOCK_DGRAM, 0);
+	m_af = addr.ss_family;
+
+	m_fd = ::socket(m_af, SOCK_DGRAM, 0);
 	if (m_fd < 0) {
 #if defined(_WIN32) || defined(_WIN64)
 		LogError("Cannot create the UDP socket, err: %lu", ::GetLastError());
@@ -215,7 +235,14 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 {
 	assert(buffer != NULL);
 	assert(length > 0U);
-	assert(m_fd >= 0);
+
+#if defined(_WIN32) || defined(_WIN64)
+	if (m_fd == INVALID_SOCKET)
+		return 0;
+#else
+	if (m_fd == -1)
+		return 0;
+#endif
 
 	// Check that the readfrom() won't block
 	struct pollfd pfd;
@@ -276,7 +303,11 @@ bool CUDPSocket::write(const unsigned char* buffer, unsigned int length, const s
 {
 	assert(buffer != NULL);
 	assert(length > 0U);
+#if defined(_WIN32) || defined(_WIN64)
+	assert(m_fd != INVALID_SOCKET);
+#else
 	assert(m_fd >= 0);
+#endif
 
 	bool result = false;
 
@@ -307,13 +338,15 @@ bool CUDPSocket::write(const unsigned char* buffer, unsigned int length, const s
 
 void CUDPSocket::close()
 {
-	if (m_fd >= 0) {
 #if defined(_WIN32) || defined(_WIN64)
+	if (m_fd != INVALID_SOCKET) {
 		::closesocket(m_fd);
+		m_fd = INVALID_SOCKET;
+	}
 #else
+	if (m_fd >= 0) {
 		::close(m_fd);
-#endif
 		m_fd = -1;
 	}
+#endif
 }
-
