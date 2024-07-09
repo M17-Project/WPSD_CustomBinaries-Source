@@ -20,6 +20,6 @@
 #if !defined(VERSION_H)
 #define	VERSION_H
 
-const char* VERSION = "20240707_WPSD";
+const char* VERSION = "20240709_WPSD";
 
 #endif
