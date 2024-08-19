@@ -60,7 +60,6 @@ m_longitude(0.0F),
 m_height(0),
 m_name(),
 m_description(),
-m_aprsSymbol(),
 m_logDisplayLevel(0U),
 m_logFileLevel(0U),
 m_logFilePath(),
@@ -71,6 +70,7 @@ m_aprsAddress(),
 m_aprsPort(0U),
 m_aprsSuffix(),
 m_aprsDescription(),
+m_aprsSymbol("/r"),
 m_networkStartup(),
 m_networkOptions(),
 m_networkInactivityTimeout(0U),
@@ -160,8 +160,8 @@ bool CConf::read()
 		char *p;
 
 		// if value is not quoted, remove after # (to make comment)
-		if ((p = strchr(value, '#')) != NULL && p == value)
-		    *p = '\0';
+		if ((p = strchr(value, '#')) != NULL)
+			*p = '\0';
 
 		// remove trailing tab/space
 		for (p = value + strlen(value) - 1U; p >= value && (*p == '\t' || *p == ' '); p--)

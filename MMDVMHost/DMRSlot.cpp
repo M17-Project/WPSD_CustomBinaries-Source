@@ -1155,7 +1155,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 		writeFile(data);
 #endif
 
-		LogMessage("DMR Slot %u, received network voice header from %s to %s%s - Name: %s", m_slotNo, src.c_str(), flco == FLCO_GROUP ? "TG " : "", dst.c_str(), cn.get(keyFIRST_NAME).c_str());	
+		LogMessage("DMR Slot %u, received network voice header from %s to %s%s", m_slotNo, src.c_str(), flco == FLCO_GROUP ? "TG " : "", dst.c_str());
 	} else if (dataType == DT_VOICE_PI_HEADER) {
 		if (m_netState != RS_NET_AUDIO) {
 			CDMRLC* lc = new CDMRLC(dmrData.getFLCO(), dmrData.getSrcId(), dmrData.getDstId());
@@ -1225,7 +1225,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 
 			m_display->writeDMR(m_slotNo, cn, m_netLC->getFLCO() == FLCO_GROUP, dst, "N");
 
-			LogMessage("DMR Slot %u, received network late entry from %s to %s%s - Name: %s", m_slotNo, src.c_str(), m_netLC->getFLCO() == FLCO_GROUP ? "TG " : "", dst.c_str(), cn.get(keyFIRST_NAME).c_str());
+			LogMessage("DMR Slot %u, received network late entry from %s to %s%s", m_slotNo, src.c_str(), m_netLC->getFLCO() == FLCO_GROUP ? "TG " : "", dst.c_str());
 		}
 
 		// Regenerate the Slot Type
@@ -1289,12 +1289,9 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 		std::string dst = m_lookup->find(m_netLC->getDstId());
 		FLCO flco       = m_netLC->getFLCO();
 
-		class CUserDBentry cn;
-		m_lookup->findWithName(m_netLC->getSrcId(), &cn);
-
 		// We've received the voice header and terminator haven't we?
 		m_netFrames += 2U;
-		LogMessage("DMR Slot %u, received network end of voice transmission from %s to %s%s, %.1f seconds, %u%% packet loss, BER: %.1f%% - Name: %s", m_slotNo, src.c_str(), flco == FLCO_GROUP ? "TG " : "", dst.c_str(), float(m_netFrames) / 16.667F, (m_netLost * 100U) / m_netFrames, float(m_netErrs * 100U) / float(m_netBits), cn.get(keyFIRST_NAME).c_str());
+		LogMessage("DMR Slot %u, received network end of voice transmission from %s to %s%s, %.1f seconds, %u%% packet loss, BER: %.1f%%", m_slotNo, src.c_str(), flco == FLCO_GROUP ? "TG " : "", dst.c_str(), float(m_netFrames) / 16.667F, (m_netLost * 100U) / m_netFrames, float(m_netErrs * 100U) / float(m_netBits));
 		m_display->writeDMRTA(m_slotNo, NULL, " ");
 		writeEndNet();
 	} else if (dataType == DT_DATA_HEADER) {
@@ -1429,7 +1426,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 
 			m_display->writeDMR(m_slotNo, cn, m_netLC->getFLCO() == FLCO_GROUP, dst, "N");
 
-			LogMessage("DMR Slot %u, received network late entry from %s to %s%s - Name: %s", m_slotNo, src.c_str(), m_netLC->getFLCO() == FLCO_GROUP ? "TG " : "", dst.c_str(), cn.get(keyFIRST_NAME).c_str());
+			LogMessage("DMR Slot %u, received network late entry from %s to %s%s", m_slotNo, src.c_str(), m_netLC->getFLCO() == FLCO_GROUP ? "TG " : "", dst.c_str());
 		}
 
 		if (m_netState == RS_NET_AUDIO) {
@@ -1753,6 +1750,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 			CUtils::dump(1U, title, data + 2U, 24U);
 		}
 
+
 		// Regenerate the Slot Type
 		CDMRSlotType slotType;
 		slotType.putData(data + 2U);
@@ -1899,7 +1897,7 @@ void CDMRSlot::writeQueueRF(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
+		LogError("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
 		return;
 	}
 
@@ -1951,7 +1949,7 @@ void CDMRSlot::writeQueueNet(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
+		LogError("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
 		return;
 	}
 
