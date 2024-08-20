@@ -6,7 +6,10 @@ LDFLAGS = -g
 
 OBJECTS = NXDNNetwork.o NXDNParrot.o Parrot.o StopWatch.o Thread.o Timer.o UDPSocket.o
 
-all:		NXDNParrot
+pre-build:
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > GitVersion.h
+
+all:		pre-build NXDNParrot
 
 NXDNParrot:	$(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o NXDNParrot

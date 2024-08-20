@@ -6,7 +6,10 @@ LDFLAGS = -g
 
 OBJECTS = Network.o P25Parrot.o Parrot.o StopWatch.o Thread.o Timer.o UDPSocket.o
 
-all:		P25Parrot
+pre-build:
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > GitVersion.h
+
+all:		pre-build P25Parrot
 
 P25Parrot:	$(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o P25Parrot

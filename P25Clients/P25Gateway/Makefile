@@ -6,7 +6,10 @@ LDFLAGS = -g
 
 OBJECTS = Conf.o DMRLookup.o Log.o Mutex.o P25Gateway.o P25Network.o Reflectors.o RptNetwork.o StopWatch.o Thread.o Timer.o UDPSocket.o Utils.o Voice.o
 
-all:		P25Gateway
+pre-build:
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > GitVersion.h
+
+all:		pre-build P25Gateway
 
 P25Gateway:	$(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o P25Gateway

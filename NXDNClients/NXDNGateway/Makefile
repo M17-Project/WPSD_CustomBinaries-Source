@@ -12,19 +12,22 @@ LIBS    = -lpthread -lgps
 LDFLAGS = -g
 
 OBJECTS = APRSWriter.o Conf.o GPSHandler.o IcomNetwork.o KenwoodNetwork.o Log.o Mutex.o NXDNCRC.o NXDNGateway.o NXDNLookup.o NXDNNetwork.o \
-	  Reflectors.o RptNetwork.o StopWatch.o Thread.o Timer.o UDPSocket.o Utils.o Voice.o
+          Reflectors.o RptNetwork.o StopWatch.o Thread.o Timer.o UDPSocket.o Utils.o Voice.o
 
-all:		NXDNGateway
+pre-build:
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > GitVersion.h
 
-NXDNGateway:	$(OBJECTS)
-		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o NXDNGateway
+all: pre-build NXDNGateway
+
+NXDNGateway: pre-build $(OBJECTS)
+	$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o NXDNGateway
 
 %.o: %.cpp
-		$(CXX) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
-install:
-		install -m 755 NXDNGateway $(HOME)/dev/WPSD-Binaries/
+install: NXDNGateway
+	install -m 755 NXDNGateway $(HOME)/dev/WPSD-Binaries/
 
 clean:
-		$(RM) NXDNGateway *.o *.d *.bak *~
- 
+	$(RM) NXDNGateway *.o *.d *.bak *~ GitVersion.h
+
