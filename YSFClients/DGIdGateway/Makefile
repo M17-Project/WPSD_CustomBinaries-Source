@@ -2,12 +2,12 @@ CC      = cc
 CXX     = c++
 
 # Use the following CFLAGS and LIBS if you don't want to use gpsd.
-#CFLAGS  = -s -O3 -Wall -DHAVE_LOG_H -std=c++0x -pthread
-#LIBS    = -lm -lpthread
+CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H -std=c++0x -pthread
+LIBS    = -lm -lpthread
 
 # Use the following CFLAGS and LIBS if you do want to use gpsd.
-CFLAGS  = -s -O3 -Wall -DHAVE_LOG_H -DUSE_GPSD -std=c++0x -pthread
-LIBS    = -lm -lpthread -lgps
+#CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H -DUSE_GPSD -std=c++0x -pthread
+#LIBS    = -lm -lpthread -lgps
 
 LDFLAGS = -g
 
@@ -30,11 +30,11 @@ DGIdGateway.o: GitVersion.h FORCE
 FORCE:
 
 install:
-		install -m 755 DGIdGateway $(HOME)/dev/WPSD-Binaries/
+		install -m 755 DGIdGateway /usr/local/bin/
 
 clean:
 		$(RM) DGIdGateway *.o *.d *.bak *~ GitVersion.h
 
 GitVersion.h:
-		echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 
