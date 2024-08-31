@@ -292,7 +292,7 @@ bool CP25Control::writeModem(unsigned char* data, unsigned int len)
 /*
 			bool ret = m_rfData.decodeLDU1(data + 2U);
 			if (!ret) {
-				LogWarning("P25, LDU1 undecodable LC, using last LDU1 LC");
+				LogDebug("P25, LDU1 undecodable LC, using last LDU1 LC");
 				m_rfData = m_rfLastLDU1;
 				m_rfUndecodableLC++;
 			} else {
@@ -346,7 +346,7 @@ bool CP25Control::writeModem(unsigned char* data, unsigned int len)
 /*
 			bool ret = m_rfData.decodeLDU2(data + 2U);
 			if (!ret) {
-				LogWarning("P25, LDU2 undecodable LC, using last LDU2 LC");
+				LogDebug("P25, LDU2 undecodable LC, using last LDU2 LC");
 				m_rfData = m_rfLastLDU2;
 				m_rfUndecodableLC++;
 			} else {
@@ -785,7 +785,7 @@ void CP25Control::writeQueueRF(const unsigned char* data, unsigned int length)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (length + 1U)) {
-		LogError("P25, overflow in the P25 RF queue");
+		LogDebug("P25, overflow in the P25 RF queue");
 		return;
 	}
 
@@ -804,7 +804,7 @@ void CP25Control::writeQueueNet(const unsigned char* data, unsigned int length)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (length + 1U)) {
-		LogError("P25, overflow in the P25 RF queue");
+		LogDebug("P25, overflow in the P25 RF queue");
 		return;
 	}
 

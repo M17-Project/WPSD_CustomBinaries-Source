@@ -302,47 +302,47 @@ int CMMDVMHost::run()
 		return 1;
 
 	if (m_dstarEnabled && !m_modem->hasDStar()) {
-		LogWarning("D-Star enabled in the host but not in the modem firmware, disabling");
+		LogDebug("D-Star enabled in the host but not in the modem firmware, disabling");
 		m_dstarEnabled = false;
 	}
 
 	if (m_dmrEnabled && !m_modem->hasDMR()) {
-		LogWarning("DMR enabled in the host but not in the modem firmware, disabling");
+		LogDebug("DMR enabled in the host but not in the modem firmware, disabling");
 		m_dmrEnabled = false;
 	}
 
 	if (m_ysfEnabled && !m_modem->hasYSF()) {
-		LogWarning("YSF enabled in the host but not in the modem firmware, disabling");
+		LogDebug("YSF enabled in the host but not in the modem firmware, disabling");
 		m_ysfEnabled = false;
 	}
 
 	if (m_p25Enabled && !m_modem->hasP25()) {
-		LogWarning("P25 enabled in the host but not in the modem firmware, disabling");
+		LogDebug("P25 enabled in the host but not in the modem firmware, disabling");
 		m_p25Enabled = false;
 	}
 
 	if (m_nxdnEnabled && !m_modem->hasNXDN()) {
-		LogWarning("NXDN enabled in the host but not in the modem firmware, disabling");
+		LogDebug("NXDN enabled in the host but not in the modem firmware, disabling");
 		m_nxdnEnabled = false;
 	}
 
 	if (m_m17Enabled && !m_modem->hasM17()) {
-		LogWarning("M17 enabled in the host but not in the modem firmware, disabling");
+		LogDebug("M17 enabled in the host but not in the modem firmware, disabling");
 		m_m17Enabled = false;
 	}
 
 	if (m_fmEnabled && !m_modem->hasFM()) {
-		LogWarning("FM enabled in the host but not in the modem firmware, disabling");
+		LogDebug("FM enabled in the host but not in the modem firmware, disabling");
 		m_fmEnabled = false;
 	}
 
 	if (m_pocsagEnabled && !m_modem->hasPOCSAG()) {
-		LogWarning("POCSAG enabled in the host but not in the modem firmware, disabling");
+		LogDebug("POCSAG enabled in the host but not in the modem firmware, disabling");
 		m_pocsagEnabled = false;
 	}
 
 	if (m_ax25Enabled && !m_modem->hasAX25()) {
-		LogWarning("AX.25 enabled in the host but not in the modem firmware, disabling");
+		LogDebug("AX.25 enabled in the host but not in the modem firmware, disabling");
 		m_ax25Enabled = false;
 	}
 
@@ -422,14 +422,14 @@ int CMMDVMHost::run()
 		LogInfo("    Send Frame Type: %u", sendFrameType);
 
 		if (CUDPSocket::lookup(remoteAddress, remotePort, transparentAddress, transparentAddrLen) != 0) {
-			LogError("Unable to resolve the address of the Transparent Data source");
+			LogDebug("Unable to resolve the address of the Transparent Data source");
 			return 1;
 		}
 
 		transparentSocket = new CUDPSocket(localPort);
 		ret = transparentSocket->open(transparentAddress);
 		if (!ret) {
-			LogWarning("Could not open the Transparent data socket, disabling");
+			LogDebug("Could not open the Transparent data socket, disabling");
 			delete transparentSocket;
 			transparentSocket = NULL;
 			sendFrameType=0;
@@ -797,7 +797,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("D-Star modem data received when in mode %u", m_mode);
+				LogDebug("D-Star modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -834,7 +834,7 @@ int CMMDVMHost::run()
 					}
 				}
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("DMR modem data received when in mode %u", m_mode);
+				LogDebug("DMR modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -871,7 +871,7 @@ int CMMDVMHost::run()
 					}
 				}
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("DMR modem data received when in mode %u", m_mode);
+				LogDebug("DMR modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -888,7 +888,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("System Fusion modem data received when in mode %u", m_mode);
+				LogDebug("System Fusion modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -905,7 +905,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("P25 modem data received when in mode %u", m_mode);
+				LogDebug("P25 modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -922,7 +922,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("NXDN modem data received when in mode %u", m_mode);
+				LogDebug("NXDN modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -939,7 +939,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("M17 modem data received when in mode %u", m_mode);
+				LogDebug("M17 modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -956,7 +956,7 @@ int CMMDVMHost::run()
 				if (ret)
 					m_modeTimer.start();
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("FM modem data received when in mode %u", m_mode);
+				LogDebug("FM modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -965,7 +965,7 @@ int CMMDVMHost::run()
 			if (m_mode == MODE_IDLE || m_mode == MODE_FM) {
 				m_ax25->writeModem(data, len);
 			} else if (m_mode != MODE_LOCKOUT) {
-				LogWarning("NXDN modem data received when in mode %u", m_mode);
+				LogDebug("NXDN modem data received when in mode %u", m_mode);
 			}
 		}
 
@@ -991,7 +991,7 @@ int CMMDVMHost::run()
 						m_modem->writeDStarData(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("D-Star data received when in mode %u", m_mode);
+						LogDebug("D-Star data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1015,7 +1015,7 @@ int CMMDVMHost::run()
 						dmrBeaconDurationTimer.stop();
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("DMR data received when in mode %u", m_mode);
+						LogDebug("DMR data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1037,7 +1037,7 @@ int CMMDVMHost::run()
 						dmrBeaconDurationTimer.stop();
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("DMR data received when in mode %u", m_mode);
+						LogDebug("DMR data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1056,7 +1056,7 @@ int CMMDVMHost::run()
 						m_modem->writeYSFData(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("System Fusion data received when in mode %u", m_mode);
+						LogDebug("System Fusion data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1075,7 +1075,7 @@ int CMMDVMHost::run()
 						m_modem->writeP25Data(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("P25 data received when in mode %u", m_mode);
+						LogDebug("P25 data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1094,7 +1094,7 @@ int CMMDVMHost::run()
 						m_modem->writeNXDNData(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("NXDN data received when in mode %u", m_mode);
+						LogDebug("NXDN data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1113,7 +1113,7 @@ int CMMDVMHost::run()
 						m_modem->writeM17Data(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("M17 data received when in mode %u", m_mode);
+						LogDebug("M17 data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1132,7 +1132,7 @@ int CMMDVMHost::run()
 						m_modem->writePOCSAGData(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("POCSAG data received when in mode %u", m_mode);
+						LogDebug("POCSAG data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1151,7 +1151,7 @@ int CMMDVMHost::run()
 						m_modem->writeFMData(data, len);
 						m_modeTimer.start();
 					} else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("FM data received when in mode %u", m_mode);
+						LogDebug("FM data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -1166,7 +1166,7 @@ int CMMDVMHost::run()
 						m_modem->writeAX25Data(data, len);
 					}
 					else if (m_mode != MODE_LOCKOUT) {
-						LogWarning("AX.25 data received when in mode %u", m_mode);
+						LogDebug("AX.25 data received when in mode %u", m_mode);
 					}
 				}
 			}
@@ -2028,7 +2028,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("D-Star");
-		LogMessage("Mode set to D-Star");
+		LogDebug("Mode set to D-Star");
 		break;
 
 	case MODE_DMR:
@@ -2077,7 +2077,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("DMR");
-		LogMessage("Mode set to DMR");
+		LogDebug("Mode set to DMR");
 		break;
 
 	case MODE_YSF:
@@ -2122,7 +2122,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("System Fusion");
-		LogMessage("Mode set to System Fusion");
+		LogDebug("Mode set to System Fusion");
 		break;
 
 	case MODE_P25:
@@ -2167,7 +2167,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("P25");
-		LogMessage("Mode set to P25");
+		LogDebug("Mode set to P25");
 		break;
 
 	case MODE_NXDN:
@@ -2212,7 +2212,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("NXDN");
-		LogMessage("Mode set to NXDN");
+		LogDebug("Mode set to NXDN");
 		break;
 
 	case MODE_M17:
@@ -2257,7 +2257,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("M17");
-		LogMessage("Mode set to M17");
+		LogDebug("Mode set to M17");
 		break;
 
 	case MODE_POCSAG:
@@ -2302,7 +2302,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("POCSAG");
-		LogMessage("Mode set to POCSAG");
+		LogDebug("Mode set to POCSAG");
 		break;
 
 	case MODE_FM:
@@ -2352,7 +2352,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.start();
 		m_cwIdTimer.stop();
 		createLockFile("FM");
-		LogMessage("Mode set to FM");
+		LogDebug("Mode set to FM");
 		break;
 
 	case MODE_LOCKOUT:
@@ -2402,11 +2402,11 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.stop();
 		m_cwIdTimer.stop();
 		removeLockFile();
-		LogMessage("Mode set to Lockout");
+		LogDebug("Mode set to Lockout");
 		break;
 
 	case MODE_ERROR:
-		LogMessage("Mode set to Error");
+		LogDebug("Mode set to Error");
 		if (m_dstarNetwork != NULL)
 			m_dstarNetwork->enable(false);
 		if (m_dmrNetwork != NULL)
@@ -2452,7 +2452,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_modeTimer.stop();
 		m_cwIdTimer.stop();
 		removeLockFile();
-		LogMessage("Mode set to Error");
+		LogDebug("Mode set to Error");
 		break;
 
 	default:
@@ -2511,7 +2511,7 @@ void CMMDVMHost::setMode(unsigned char mode)
 		m_mode = MODE_IDLE;
 		m_modeTimer.stop();
 		removeLockFile();
-		LogMessage("Mode set to Idle");
+		LogDebug("Mode set to Idle");
 		break;
 	}
 }
@@ -2753,7 +2753,7 @@ void CMMDVMHost::processEnableCommand(bool& mode, bool enabled)
 
 	m_modem->setModeParams(m_dstarEnabled, m_dmrEnabled, m_ysfEnabled, m_p25Enabled, m_nxdnEnabled, m_m17Enabled, m_pocsagEnabled, m_fmEnabled, m_ax25Enabled);
 	if (!m_modem->writeConfig())
-		LogError("Cannot write Config to MMDVM");
+		LogDebug("Cannot write Config to MMDVM");
 }
 
 void CMMDVMHost::buildNetworkStatusString(std::string &str)

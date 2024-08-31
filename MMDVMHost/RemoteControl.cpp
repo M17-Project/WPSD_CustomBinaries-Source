@@ -54,7 +54,7 @@ CRemoteControl::~CRemoteControl()
 bool CRemoteControl::open()
 {
 	if (m_addrLen == 0U) {
-		LogError("Unable to resolve the address of the remote control port");
+		LogDebug("Unable to resolve the address of the remote control port");
 		return false;
 	}
 
@@ -185,7 +185,7 @@ REMOTE_COMMAND CRemoteControl::getCommand()
 		::snprintf(buffer, BUFFER_LENGTH * 2, "%s remote command of \"%s\" received", ((m_command == RCD_NONE) ? "Invalid" : "Valid"), command);
 		if (m_command == RCD_NONE) {
 			m_args.clear();
-			LogWarning(buffer);
+			LogDebug(buffer);
 		} else {
 #if !defined(REMOTE_COMMAND_NO_LOG)
 			LogMessage(buffer);

@@ -138,7 +138,7 @@ bool CLCDproc::open()
 	hints.ai_socktype = SOCK_STREAM;
 	err = getaddrinfo(m_address.c_str(), port.c_str(), &hints, &res);
 	if (err) {
-		LogError("LCDproc, cannot lookup server");
+		LogDebug("LCDproc, cannot lookup server");
 		return false;
 	}
 	memcpy(&serverAddress, res->ai_addr, addrlen = res->ai_addrlen);
@@ -149,7 +149,7 @@ bool CLCDproc::open()
 	hints.ai_family = serverAddress.ss_family;
 	err = getaddrinfo(NULL, localPort.c_str(), &hints, &res);
 	if (err) {
-		LogError("LCDproc, cannot lookup client");
+		LogDebug("LCDproc, cannot lookup client");
 		return false;
 	}
 	memcpy(&clientAddress, res->ai_addr, res->ai_addrlen);
@@ -158,19 +158,19 @@ bool CLCDproc::open()
 	/* Create TCP socket */
 	m_socketfd = socket(clientAddress.ss_family, SOCK_STREAM, 0);
 	if (m_socketfd == -1) {
-		LogError("LCDproc, failed to create socket");
+		LogDebug("LCDproc, failed to create socket");
 		return false;
 	}
 
 	/* Bind the address to the socket */
 	if (bind(m_socketfd, (struct sockaddr *)&clientAddress, addrlen) == -1) {
-		LogError("LCDproc, error whilst binding address");
+		LogDebug("LCDproc, error whilst binding address");
 		return false;
 	}
 
 	/* Connect to server */
 	if (connect(m_socketfd, (struct sockaddr *)&serverAddress, addrlen) == -1) {
-		LogError("LCDproc, cannot connect to server");
+		LogDebug("LCDproc, cannot connect to server");
 		return false;
 	}
 
@@ -672,7 +672,7 @@ void CLCDproc::clockInt(unsigned int ms)
 	 */
 
 	if (select(m_socketfd + 1, &m_readfds, NULL, NULL, &m_timeout) == -1) {
-		LogError("LCDproc, error on select");
+		LogDebug("LCDproc, error on select");
 		return;
 	}
 
@@ -681,7 +681,7 @@ void CLCDproc::clockInt(unsigned int ms)
 		m_recvsize = recv(m_socketfd, m_buffer, BUFFER_MAX_LEN, 0);
 
 		if (m_recvsize == -1) {
-			LogError("LCDproc, cannot receive information");
+			LogDebug("LCDproc, cannot receive information");
 			return;
 		}
 
@@ -777,12 +777,12 @@ int CLCDproc::socketPrintf(int fd, const char *format, ...)
 	va_end(ap);
 
 	if (size < 0) {
-		LogError("LCDproc, socketPrintf: vsnprintf failed");
+		LogDebug("LCDproc, socketPrintf: vsnprintf failed");
 		return -1;
 	}
 
 	if (size > BUFFER_MAX_LEN)
-		LogWarning("LCDproc, socketPrintf: vsnprintf truncated message");
+		LogDebug("LCDproc, socketPrintf: vsnprintf truncated message");
 
 	FD_ZERO(&m_writefds);   // empty writefds 
 	FD_SET(m_socketfd, &m_writefds);
@@ -791,11 +791,11 @@ int CLCDproc::socketPrintf(int fd, const char *format, ...)
 	m_timeout.tv_usec = 0;
 
 	if (select(m_socketfd + 1, NULL, &m_writefds, NULL, &m_timeout) == -1)
-		LogError("LCDproc, error on select");
+		LogDebug("LCDproc, error on select");
 
 	if (FD_ISSET(m_socketfd, &m_writefds)) {
 		if (send(m_socketfd, buf, int(strlen(buf) + 1U), 0) == -1) {
-			LogError("LCDproc, cannot send data");
+			LogDebug("LCDproc, cannot send data");
 			return -1;
 		}
 	}
