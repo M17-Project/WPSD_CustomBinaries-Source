@@ -39,7 +39,7 @@ bool CRSSIInterpolator::load(const std::string& filename)
 {
 	FILE* fp = ::fopen(filename.c_str(), "rt");
 	if (fp == NULL) {
-		LogDebug("Cannot open the RSSI data file - %s", filename.c_str());
+		LogWarning("Cannot open the RSSI data file - %s", filename.c_str());
 		return false;
 	}
 	
