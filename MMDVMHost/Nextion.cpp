@@ -1019,7 +1019,7 @@ void CNextion::clockInt(unsigned int ms)
 
 		setlocale(LC_TIME,"");
 		char text[50U];
-		strftime(text, 50, "t2.txt=\"%x %X\"", Time);
+		strftime(text, 50, "t2.txt=\"%m/%d/%y %X\"", Time);
 		sendCommand(text);
 
 		m_clockDisplayTimer.start(); // restart the clock display timer
