@@ -1017,9 +1017,19 @@ void CNextion::clockInt(unsigned int ms)
 		else
 			Time = ::localtime(&currentTime);
 
-		setlocale(LC_TIME,"");
+		setlocale(LC_ALL, "");
 		char text[50U];
-		strftime(text, 50, "t2.txt=\"%m/%d/%y %X\"", Time);
+		char date[20U];
+		char time[20U];
+
+		strftime(date, sizeof(date), "%x", Time);
+
+		char localizedDate[20U];
+
+		snprintf(localizedDate, sizeof(localizedDate), "%.6s%02d", date, Time->tm_year % 100);
+		strftime(time, sizeof(time), "%X", Time);
+		snprintf(text, sizeof(text), "t2.txt=\"%s %s\"", localizedDate, time);
+
 		sendCommand(text);
 
 		m_clockDisplayTimer.start(); // restart the clock display timer
