@@ -1005,44 +1005,47 @@ void CNextion::clearCWInt()
 
 void CNextion::clockInt(unsigned int ms)
 {
-	// Update the clock display in IDLE mode every 400ms
-	m_clockDisplayTimer.clock(ms);
-	if (m_displayClock && (m_mode == MODE_IDLE || m_mode == MODE_CW) && m_clockDisplayTimer.isRunning() && m_clockDisplayTimer.hasExpired()) {
-		time_t currentTime;
-		struct tm *Time;
-		::time(&currentTime);                   // Get the current time
+    // Update the clock display in IDLE mode every 400ms
+    m_clockDisplayTimer.clock(ms);
+    if (m_displayClock && (m_mode == MODE_IDLE || m_mode == MODE_CW) && m_clockDisplayTimer.isRunning() && m_clockDisplayTimer.hasExpired()) {
+        time_t currentTime;
+        struct tm *Time;
+        ::time(&currentTime); // Get the current time
 
-		if (m_utc)
-			Time = ::gmtime(&currentTime);
-		else
-			Time = ::localtime(&currentTime);
+        if (m_utc)
+            Time = ::gmtime(&currentTime);
+        else
+            Time = ::localtime(&currentTime);
 
-		setlocale(LC_ALL, "");
-		char text[50U];
-		char date[20U];
-		char time[20U];
+        // Change locale for time and date formatting only
+        setlocale(LC_TIME, ""); 
 
-		strftime(date, sizeof(date), "%x", Time);
+        char text[50U];
+        char date[20U];
+        char time[20U];
 
-		char localizedDate[20U];
+        strftime(date, sizeof(date), "%x", Time);
 
-		snprintf(localizedDate, sizeof(localizedDate), "%.6s%02d", date, Time->tm_year % 100);
-		strftime(time, sizeof(time), "%X", Time);
-		snprintf(text, sizeof(text), "t2.txt=\"%s %s\"", localizedDate, time);
+        char localizedDate[20U];
+        snprintf(localizedDate, sizeof(localizedDate), "%.6s%02d", date, Time->tm_year % 100);
 
-		sendCommand(text);
+        strftime(time, sizeof(time), "%X", Time);
+        snprintf(text, sizeof(text), "t2.txt=\"%s %s\"", localizedDate, time);
 
-		m_clockDisplayTimer.start(); // restart the clock display timer
-	}
+        sendCommand(text);
 
-	if (m_socket != NULL) {
-		unsigned char buffer[200U];
+        m_clockDisplayTimer.start(); // restart the clock display timer
+    }
 
-		int len = m_serial->read(buffer, 200U);
-		if (len > 0)
-			m_socket->write(buffer, len, m_addr, m_addrLength);
-	}
+    if (m_socket != NULL) {
+        unsigned char buffer[200U];
+
+        int len = m_serial->read(buffer, 200U);
+        if (len > 0)
+            m_socket->write(buffer, len, m_addr, m_addrLength);
+    }
 }
+
 
 void CNextion::close()
 {
