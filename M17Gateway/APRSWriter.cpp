@@ -39,7 +39,7 @@ m_aprsAddr(),
 m_aprsAddrLen(0U),
 m_aprsSocket()
 #if defined(USE_GPSD)
-m_gpsdEnabled(false),
+,m_gpsdEnabled(false),
 m_gpsdAddress(),
 m_gpsdPort(),
 m_gpsdData()
