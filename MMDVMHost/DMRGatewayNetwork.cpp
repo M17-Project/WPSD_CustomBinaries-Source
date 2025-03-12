@@ -105,7 +105,7 @@ void CDMRGatewayNetwork::setOptions(const std::string& options)
 bool CDMRGatewayNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("DMR, Unable to resolve the address of the DMR Network");
+		LogError("DMR, Unable to resolve the address of the DMR Network");
 		return false;
 	}
 
@@ -442,7 +442,7 @@ bool CDMRGatewayNetwork::write(const unsigned char* data, unsigned int length)
 
 	bool ret = m_socket.write(data, length, m_addr, m_addrLen);
 	if (!ret) {
-		LogDebug("DMR, socket error when writing to the DMR Network");
+		LogError("DMR, socket error when writing to the DMR Network");
 		return false;
 	}
 
