@@ -44,6 +44,7 @@ bool           CDMRSlot::m_duplex = true;
 CDMRLookup*    CDMRSlot::m_lookup = NULL;
 unsigned int   CDMRSlot::m_hangCount = 3U * 17U;
 DMR_OVCM_TYPES CDMRSlot::m_ovcm = DMR_OVCM_OFF;
+bool           CDMRSlot::m_protect = false;
 
 CRSSIInterpolator* CDMRSlot::m_rssiMapper = NULL;
 
@@ -222,6 +223,15 @@ bool CDMRSlot::writeModem(unsigned char *data, unsigned int len)
 			unsigned int dstId = lc->getDstId();
 			FLCO flco = lc->getFLCO();
 
+			if (!m_protect) {
+				if (lc->getPF()) {
+					LogMessage("DMR Slot %u, RF user %u rejected", m_slotNo, srcId);
+					delete lc;
+					m_rfState = RS_RF_LISTENING;
+					return false;
+				}
+			}
+
 			if (!CDMRAccessControl::validateSrcId(srcId)) {
 				LogMessage("DMR Slot %u, RF user %u rejected", m_slotNo, srcId);
 				delete lc;
@@ -320,10 +330,12 @@ bool CDMRSlot::writeModem(unsigned char *data, unsigned int len)
 			data[0U] = TAG_DATA;
 			data[1U] = 0x00U;
 
-			if (m_duplex)
-				writeQueueRF(data);
+			if (m_protect) {
+				if (m_duplex)
+					writeQueueRF(data);
 
-			writeNetworkRF(data, DT_VOICE_PI_HEADER);
+				writeNetworkRF(data, DT_VOICE_PI_HEADER);
+			}
 
 			return true;
 		} else if (dataType == DT_TERMINATOR_WITH_LC) {
@@ -515,7 +527,7 @@ bool CDMRSlot::writeModem(unsigned char *data, unsigned int len)
 				LogMessage("DMR Slot %u, received RF Call Emergency CSBK from %s to %s%s", m_slotNo, src.c_str(), gi ? "TG " : "", dst.c_str());
 				break;
 			default:
-				LogDebug("DMR Slot %u, unhandled RF CSBK type - 0x%02X", m_slotNo, csbko);
+				LogWarning("DMR Slot %u, unhandled RF CSBK type - 0x%02X", m_slotNo, csbko);
 				break;
 			}
 
@@ -810,6 +822,15 @@ bool CDMRSlot::writeModem(unsigned char *data, unsigned int len)
 				unsigned int dstId = lc->getDstId();
 				FLCO flco = lc->getFLCO();
 
+				if (!m_protect) {
+					if (lc->getPF()) {
+						LogMessage("DMR Slot %u, RF user %u rejected", m_slotNo, srcId);
+						delete lc;
+						m_rfState = RS_RF_LISTENING;
+						return false;
+					}
+				}
+
 				if (!CDMRAccessControl::validateSrcId(srcId)) {
 					LogMessage("DMR Slot %u, RF user %u rejected", m_slotNo, srcId);
 					delete lc;
@@ -1080,7 +1101,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 		FLCO flco          = lc->getFLCO();
 
 		if (dstId != dmrData.getDstId() || srcId != dmrData.getSrcId() || flco != dmrData.getFLCO())
-			LogDebug("DMR Slot %u, DMRD header doesn't match the DMR RF header: %u->%s%u %u->%s%u", m_slotNo,
+			LogWarning("DMR Slot %u, DMRD header doesn't match the DMR RF header: %u->%s%u %u->%s%u", m_slotNo,
 				dmrData.getSrcId(), dmrData.getFLCO() == FLCO_GROUP ? "TG" : "", dmrData.getDstId(),
 				srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
 
@@ -1246,7 +1267,8 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 		data[0U] = TAG_DATA;
 		data[1U] = 0x00U;
 
-		writeQueueNet(data);
+		if (m_protect)
+			writeQueueNet(data);
 
 #if defined(DUMP_DMR)
 		writeFile(data);
@@ -1709,7 +1731,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 			LogMessage("DMR Slot %u, received network Radio Check %s CSBK from %s to %s%s", m_slotNo, /* TBD */ 1 ? "Req" : "Ack", src.c_str(), gi ? "TG " : "", dst.c_str());
 			break;
 		default:
-			LogDebug("DMR Slot %u, unhandled network CSBK type - 0x%02X", m_slotNo, csbko);
+			LogWarning("DMR Slot %u, unhandled network CSBK type - 0x%02X", m_slotNo, csbko);
 			break;
 		}
 
@@ -1776,7 +1798,7 @@ void CDMRSlot::writeNetwork(const CDMRData& dmrData)
 		}
 	} else {
 		// Unhandled data type
-		LogDebug("DMR Slot %u, unhandled network data type - 0x%02X", m_slotNo, dataType);
+		LogWarning("DMR Slot %u, unhandled network data type - 0x%02X", m_slotNo, dataType);
 	}
 }
 
@@ -1897,7 +1919,7 @@ void CDMRSlot::writeQueueRF(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
+		LogError("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
 		return;
 	}
 
@@ -1949,7 +1971,7 @@ void CDMRSlot::writeQueueNet(const unsigned char *data)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (len + 1U)) {
-		LogDebug("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
+		LogError("DMR Slot %u, overflow in the DMR slot RF queue", m_slotNo);
 		return;
 	}
 
@@ -1957,7 +1979,7 @@ void CDMRSlot::writeQueueNet(const unsigned char *data)
 	m_queue.addData(data, len);
 }
 
-void CDMRSlot::init(unsigned int colorCode, bool embeddedLCOnly, bool dumpTAData, unsigned int callHang, CModem* modem, IDMRNetwork* network, CDisplay* display, bool duplex, CDMRLookup* lookup, CRSSIInterpolator* rssiMapper, unsigned int jitter, DMR_OVCM_TYPES ovcm)
+void CDMRSlot::init(unsigned int colorCode, bool embeddedLCOnly, bool dumpTAData, unsigned int callHang, CModem* modem, IDMRNetwork* network, CDisplay* display, bool duplex, CDMRLookup* lookup, CRSSIInterpolator* rssiMapper, unsigned int jitter, DMR_OVCM_TYPES ovcm, bool protect)
 {
 	assert(modem != NULL);
 	assert(display != NULL);
@@ -1974,6 +1996,7 @@ void CDMRSlot::init(unsigned int colorCode, bool embeddedLCOnly, bool dumpTAData
 	m_lookup         = lookup;
 	m_hangCount      = callHang * 17U;
 	m_ovcm           = ovcm;
+	m_protect        = protect;
 
 	m_rssiMapper     = rssiMapper;
 
@@ -2022,7 +2045,7 @@ void CDMRSlot::setShortLC(unsigned int slotNo, unsigned int id, FLCO flco, ACTIV
 			}
 			break;
 		default:
-			LogDebug("Invalid slot number passed to setShortLC - %u", slotNo);
+			LogError("Invalid slot number passed to setShortLC - %u", slotNo);
 			return;
 	}
 
