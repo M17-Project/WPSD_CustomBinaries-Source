@@ -41,5 +41,8 @@ cd $DEST_DIR
 git commit -a -m '* Minor: update from upstream & rebuilds'
 cd $cwd
 
+echo "cleaning..."
+find . -type d -print0 | xargs -0 -I {} sh -c 'cd "{}" && make clean > /dev/null 2>&1'
+
 exit 0
 
