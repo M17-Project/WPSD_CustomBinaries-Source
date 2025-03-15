@@ -14,7 +14,7 @@ ircddbgatewayd:	$(OBJECTS) ../ircDDB/IRCDDB.a ../Common/Common.a
 
 .PHONY: install
 install:
-		install -g root -o root -m 0755 ircddbgatewayd $(DESTDIR)$(BINDIR)
+		install -m 0755 ircddbgatewayd $(DESTDIR)$(BINDIR)
 ifeq (,$(wildcard $(DESTDIR)$(CONFDIR)/ircddbgateway))
 		cp ircddbgateway-emptyconfig $(DESTDIR)$(CONFDIR)/ircddbgateway
 endif
