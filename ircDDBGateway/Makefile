@@ -5,10 +5,14 @@ export LOGDIR  ?= /var/log/opendv
 export CONFDIR ?= /etc
 export BINDIR  ?= /usr/sbin
 else
-export DATADIR ?= /usr/share/ircddbgateway
-export LOGDIR  ?= /var/log
+#export DATADIR ?= /usr/share/ircddbgateway
+#export LOGDIR  ?= /var/log
+#export CONFDIR ?= /etc
+#export BINDIR  ?= /usr/bin
+export DATADIR ?= /usr/local/etc
+export LOGDIR  ?= /var/log/pi-star
 export CONFDIR ?= /etc
-export BINDIR  ?= /usr/bin
+export BINDIR  ?= $(HOME)/dev/WPSD-Binaries/
 endif
 
 # Add -DDCS_LINK to the end of the CFLAGS line below to add DCS linking to StarNet
@@ -17,16 +21,13 @@ endif
 # Add -DUSE_GPSD to the end of the CFLAGS line to enable the use of gpsd, and add -lgps to
 # end of the LIBS line.
 
-DEBUGFLAGS     := -g -D_DEBUG
 RELEASEFLAGS   := -DNDEBUG -DwxDEBUG_LEVEL=0
 export CXX     := $(shell wx-config --cxx)
-export CFLAGS  := -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='"$(LOGDIR)"' -DCONF_DIR='"$(CONFDIR)"' -DDATA_DIR='"$(DATADIR)"'
-ifeq ($(BUILD), debug)
-	export CFLAGS  := $(CFLAGS) $(DEBUGFLAGS)
-else ifeq ($(BUILD), release)
-	export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
-endif
-export LIBS    := $(shell wx-config --libs base,net)
+export CFLAGS  := -s -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='"$(LOGDIR)"' -DCONF_DIR='"$(CONFDIR)"' -DDATA_DIR='"$(DATADIR)"' -DDEXTRA_LINK -DUSE_GPSD
+#export CFLAGS  := -s -O2 -Wall $(shell wx-config --cxxflags) -DLOG_DIR='"$(LOGDIR)"' -DCONF_DIR='"$(CONFDIR)"' -DDATA_DIR='"$(DATADIR)"' -DDEXTRA_LINK
+export CFLAGS  := $(CFLAGS) $(RELEASEFLAGS)
+export LIBS    := $(shell wx-config --libs base,net) -lgps
+#export LIBS    := $(shell wx-config --libs base,net)
 export LDFLAGS := 
 
 .PHONY: all
@@ -63,12 +64,13 @@ Common/Common.a: force
 ircDDB/IRCDDB.a: force
 	$(MAKE) -C ircDDB
 
-.PHONY: installdirs
-installdirs: force
-	/bin/mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(LOGDIR) $(DESTDIR)$(CONFDIR) $(DESTDIR)$(BINDIR)
+#.PHONY: installdirs
+#installdirs: force
+#	/bin/mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(LOGDIR) $(DESTDIR)$(CONFDIR) $(DESTDIR)$(BINDIR)
 
 .PHONY: install
-install: all installdirs
+install: all
+#install: all installdirs
 ifeq ($(TARGET), opendv)
 	useradd --user-group -M --system opendv --shell /bin/false || true
 
@@ -81,7 +83,7 @@ ifeq ($(TARGET), opendv)
 	mkdir /var/log/opendv || true
 	chown opendv:opendv /var/log/opendv
 endif
-	$(MAKE) -C Data install
+	#$(MAKE) -C Data install
 	$(MAKE) -C APRSTransmit install
 	$(MAKE) -C ircDDBGateway install
 	$(MAKE) -C RemoteControl install
@@ -104,23 +106,6 @@ clean:
 	$(MAKE) -C TimeServer clean
 	$(MAKE) -C VoiceTransmit clean
 	$(MAKE) -C ircDDBGatewayConfig clean
-
-.PHONY: uninstall
-uninstall:
-ifeq ($(TARGET), opendv)
-	userdel opendv || true
-	rm -r /var/log/opendv || true
-	rm $(DESTDIR)/etc/systemd/system/ircddbgatewayd.service
-endif
-	rm -r $(DESTDIR)$(DATADIR) || true
-	rm $(DESTDIR)$(BINDIR)/aprstransmitd || true
-	rm $(DESTDIR)$(BINDIR)/ircddbgatewayd || true
-	rm $(DESTDIR)$(BINDIR)/remotecontrold || true
-	rm $(DESTDIR)$(BINDIR)/starnetserverd || true
-	rm $(DESTDIR)$(BINDIR)/texttransmitd || true
-	rm $(DESTDIR)$(BINDIR)/timercontrold || true
-	rm $(DESTDIR)$(BINDIR)/timeserverd || true
-	@echo "*** NOTE: Leaving /etc/ircddbgateway in place ***"
 
 .PHONY: force
 force :
