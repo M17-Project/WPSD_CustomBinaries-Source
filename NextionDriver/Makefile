@@ -6,7 +6,7 @@ CFLAGS += -Wall -O2 -D_GNU_SOURCE
 SOURCE = \
 		NextionDriver.c basicFunctions.c processCommands.c processButtons.c helpers.c
 
-all:		clean NextionDriver
+all:		NextionDriver
 
 NextionDriver:
 		$(CC) $(SOURCE) $(CFLAGS) -o NextionDriver
