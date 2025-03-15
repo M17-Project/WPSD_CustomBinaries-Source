@@ -14,7 +14,7 @@ voicetransmitd:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		 install -m 0755 voicetransmitd $(DESTDIR)$(BINDIR)
+		install -g root -o root -m 0755 voicetransmitd $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

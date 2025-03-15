@@ -36,5 +36,9 @@ clean:
 		$(RM) DGIdGateway *.o *.d *.bak *~ GitVersion.h
 
 GitVersion.h:
+ifneq ($(wildcard $(HOME)/dev/WPSD_CustomBinaries-Source/.git/index),)
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+else
+	echo "const char *gitversion = \"0000000000000000000000000000000000000000\";" > $@
+endif
 

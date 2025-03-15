@@ -15,7 +15,7 @@ timercontrold:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		 install -m 0755 timercontrold $(DESTDIR)$(BINDIR)
+		install -g root -o root -m 0755 timercontrold $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

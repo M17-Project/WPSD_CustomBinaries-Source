@@ -1,6 +1,6 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -s -O3 -Wall -std=c++0x -pthread
+CFLAGS  = -g -O3 -Wall -std=c++0x -pthread
 LIBS    = -lpthread
 LDFLAGS = -g
 
@@ -27,4 +27,8 @@ clean:
 		$(RM) YSFParrot *.o *.d *.bak *~ GitVersion.h
  
 GitVersion.h:
-		echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+ifneq ($(wildcard $(HOME)/dev/WPSD_CustomBinaries-Source/.git/index),)
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+else
+	echo "const char *gitversion = \"0000000000000000000000000000000000000000\";" > $@
+endif

@@ -21,7 +21,7 @@
 
 #include <wx/wx.h>
 
-const wxString VENDOR_NAME = wxT("W0CHP");
+const wxString VENDOR_NAME = wxT("G4KLX");
 
 #if defined(__WXDEBUG__)
 const wxString VERSION = wxT("20250315_WPSD");

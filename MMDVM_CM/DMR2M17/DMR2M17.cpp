@@ -253,7 +253,7 @@ int CDMR2M17::run()
 	
 	m_callsign = m_conf.getCallsign();
 	m_m17Ref = m_conf.getM17DstName();
-	char module = m_m17Ref.c_str()[m_m17Ref.find('_')+1];
+	char module = m_m17Ref.c_str()[m_m17Ref.find(' ')+1];
 
 	std::string m17_dstAddress   = m_conf.getM17DstAddress();
 	unsigned int m17_dstPort     = m_conf.getM17DstPort();
@@ -298,7 +298,6 @@ int CDMR2M17::run()
 
 	if (m_killed) {
 		m_dmrNetwork->close();
-		LogMessage("Closing DMR network connection");
 		delete m_dmrNetwork;
 		return 0;
 	}
@@ -341,7 +340,7 @@ int CDMR2M17::run()
 		unsigned int ms = stopWatch.elapsed();
 		
 		if(m17PingWatch.elapsed() > M17_PING_TIMEOUT){
-			LogMessage("Link lost to reflector %s; sending CONN...", m_m17Ref.c_str());
+			LogMessage("M17 reflector stopped responding, sending CONN...");
 			pollTimer.stop();
 			m17PingWatch.start();
 			m_m17Network->writeLink(module);
@@ -398,27 +397,20 @@ int CDMR2M17::run()
 
 		while (m_m17Network->readData(m_m17Frame, 54U) > 0U) {
 			if (!memcmp(m_m17Frame, "PING", 4)) {
-				LogDebug("Received PING from reflector  %s", m_m17Ref.c_str());
 				m17PingWatch.start();
 			}
 			if (!memcmp(m_m17Frame, "ACKN", 4)) {
-				LogMessage("Linked to reflector %s", m_m17Ref.c_str());
+				LogMessage("Received ACKN from reflector");
 				if(!pollTimer.isRunning()){
 					pollTimer.start();
 				}
 				m17PingWatch.start();
 			}
 			if (!memcmp(m_m17Frame, "NACK", 4)) {
-				LogMessage("Link refused by reflector %s", m_m17Ref.c_str());
+				LogMessage("Received NACK from reflector");
 				pollTimer.stop();
 				m17PingWatch.start();
 			}
-			if (!memcmp(m_m17Frame, "DISC", 4)) {
-				LogMessage("Unlinked from reflector %s", m_m17Ref.c_str());
-				pollTimer.stop();
-				m17PingWatch.start();
-			}
-
 			if (!memcmp(m_m17Frame, "M17 ", 4)) {
 				if (m_m17Frame[34] == 0 && m_m17Frame[35] == 0) {
 					m_m17Frames = 0;
@@ -689,8 +681,8 @@ int CDMR2M17::run()
 
 		if (ms < 5U) CThread::sleep(5U);
 	}
+
 	m_m17Network->close();
-	LogMessage("Closing DMR network connection");
 	m_dmrNetwork->close();
 	delete m_dmrNetwork;
 	delete m_m17Network;
