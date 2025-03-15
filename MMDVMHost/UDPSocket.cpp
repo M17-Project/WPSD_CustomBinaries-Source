@@ -29,7 +29,7 @@
 #include "Log.h"
 #else
 #define LogMessage(fmt, ...)	::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
-#define LogDebug(fmt, ...)	::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
+#define LogError(fmt, ...)	::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
 #define LogInfo(fmt, ...)	::fprintf(stderr, fmt "\n", ## __VA_ARGS__)
 #endif
 
@@ -67,7 +67,7 @@ void CUDPSocket::startup()
 	WSAData data;
 	int wsaRet = ::WSAStartup(MAKEWORD(2, 2), &data);
 	if (wsaRet != 0)
-		LogDebug("Error from WSAStartup");
+		LogError("Error from WSAStartup");
 #endif
 }
 
@@ -101,7 +101,7 @@ int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockadd
 		paddr->sin_family = AF_INET;
 		paddr->sin_port = htons(port);
 		paddr->sin_addr.s_addr = htonl(INADDR_NONE);
-		LogDebug("Cannot find address for host %s", hostname.c_str());
+		LogError("Cannot find address for host %s", hostname.c_str());
 		return err;
 	}
 
@@ -187,7 +187,7 @@ bool CUDPSocket::open()
 	// To determine protocol family, call lookup() on the local address first.
 	int err = lookup(m_localAddress, m_localPort, addr, addrlen, hints);
 	if (err != 0) {
-		LogDebug("The local address is invalid - %s", m_localAddress.c_str());
+		LogError("The local address is invalid - %s", m_localAddress.c_str());
 		return false;
 	}
 
@@ -196,9 +196,9 @@ bool CUDPSocket::open()
 	m_fd = ::socket(m_af, SOCK_DGRAM, 0);
 	if (m_fd < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogDebug("Cannot create the UDP socket, err: %lu", ::GetLastError());
+		LogError("Cannot create the UDP socket, err: %lu", ::GetLastError());
 #else
-		LogDebug("Cannot create the UDP socket, err: %d", errno);
+		LogError("Cannot create the UDP socket, err: %d", errno);
 #endif
 		return false;
 	}
@@ -207,9 +207,9 @@ bool CUDPSocket::open()
 		int reuse = 1;
 		if (::setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
-			LogDebug("Cannot set the UDP socket option, err: %lu", ::GetLastError());
+			LogError("Cannot set the UDP socket option, err: %lu", ::GetLastError());
 #else
-			LogDebug("Cannot set the UDP socket option, err: %d", errno);
+			LogError("Cannot set the UDP socket option, err: %d", errno);
 #endif
 			close();
 			return false;
@@ -217,9 +217,9 @@ bool CUDPSocket::open()
 
 		if (::bind(m_fd, (sockaddr*)&addr, addrlen) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
-			LogDebug("Cannot bind the UDP address, err: %lu", ::GetLastError());
+			LogError("Cannot bind the UDP address, err: %lu", ::GetLastError());
 #else
-			LogDebug("Cannot bind the UDP address, err: %d", errno);
+			LogError("Cannot bind the UDP address, err: %d", errno);
 #endif
 			close();
 			return false;
@@ -258,9 +258,9 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 #endif
 	if (ret < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogDebug("Error returned from UDP poll, err: %lu", ::GetLastError());
+		LogError("Error returned from UDP poll, err: %lu", ::GetLastError());
 #else
-		LogDebug("Error returned from UDP poll, err: %d", errno);
+		LogError("Error returned from UDP poll, err: %d", errno);
 #endif
 		return -1;
 	}
@@ -281,9 +281,9 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 #endif
 	if (len <= 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogDebug("Error returned from recvfrom, err: %lu", ::GetLastError());
+		LogError("Error returned from recvfrom, err: %lu", ::GetLastError());
 #else
-		LogDebug("Error returned from recvfrom, err: %d", errno);
+		LogError("Error returned from recvfrom, err: %d", errno);
 
 		if (len == -1 && errno == ENOTSOCK) {
 			LogMessage("Re-opening UDP port on %hu", m_localPort);
@@ -319,9 +319,9 @@ bool CUDPSocket::write(const unsigned char* buffer, unsigned int length, const s
 
 	if (ret < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogDebug("Error returned from sendto, err: %lu", ::GetLastError());
+		LogError("Error returned from sendto, err: %lu", ::GetLastError());
 #else
-		LogDebug("Error returned from sendto, err: %d", errno);
+		LogError("Error returned from sendto, err: %d", errno);
 #endif
 	} else {
 #if defined(_WIN32) || defined(_WIN64)

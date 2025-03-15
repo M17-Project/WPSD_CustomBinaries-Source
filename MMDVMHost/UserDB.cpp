@@ -60,7 +60,7 @@ bool CUserDB::load(std::string const& filename)
 
 	FILE* fp = ::fopen(filename.c_str(), "rt");
 	if (fp == NULL) {
-		LogDebug("Cannot open ID lookup file - %s", filename.c_str());
+		LogWarning("Cannot open ID lookup file - %s", filename.c_str());
 		return false;
 	}
 
@@ -72,7 +72,7 @@ bool CUserDB::load(std::string const& filename)
 	// set index for entries
 	char buffer[256U];
 	if (::fgets(buffer, sizeof(buffer), fp) == NULL) {
-		LogDebug("ID lookup file has no entry - %s", filename.c_str());
+		LogWarning("ID lookup file has no entry - %s", filename.c_str());
 		m_mutex.unlock();
 		::fclose(fp);
 		return false;

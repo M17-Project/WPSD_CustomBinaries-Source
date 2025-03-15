@@ -717,7 +717,7 @@ CDisplay* CDisplay::createDisplay(const CConf& conf, CModem* modem)
 	} else if (type == "CAST") {
 		display = new CCASTInfo(modem);
 	} else {
-		LogDebug("No valid display found, disabling");
+		LogWarning("No valid display found, disabling");
 		display = new CNullDisplay;
 	}
 

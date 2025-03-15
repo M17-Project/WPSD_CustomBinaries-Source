@@ -57,7 +57,7 @@ CYSFNetwork::~CYSFNetwork()
 bool CYSFNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("Unable to resolve the address of the YSF Gateway");
+		LogError("Unable to resolve the address of the YSF Gateway");
 		return false;
 	}
 
