@@ -1,1 +1,14 @@
 GitVersion.h
+*.o
+*.opendb
+*.bak
+*.obj
+*~
+*.sdf
+*.log
+*.zip
+*.exe
+*.user
+*.VC.db
+.vs
+*.ambe
