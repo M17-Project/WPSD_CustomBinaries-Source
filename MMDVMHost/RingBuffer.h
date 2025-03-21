@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2006-2009,2012,2013,2015,2016 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2006-2009,2012,2013,2015,2016,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@ public:
 	CRingBuffer(unsigned int length, const char* name) :
 	m_length(length),
 	m_name(name),
-	m_buffer(NULL),
+	m_buffer(nullptr),
 	m_iPtr(0U),
 	m_oPtr(0U)
 	{
 		assert(length > 0U);
-		assert(name != NULL);
+		assert(name != nullptr);
 
 		m_buffer = new T[length];
 
@@ -50,7 +50,7 @@ public:
 	bool addData(const T* buffer, unsigned int nSamples)
 	{
 		if (nSamples >= freeSpace()) {
-			LogError("%s buffer overflow, clearing the buffer. (%u >= %u)", m_name, nSamples, freeSpace());
+			LogDebug("%s buffer overflow, clearing the buffer. (%u >= %u)", m_name, nSamples, freeSpace());
 			clear();
 			return false;
 		}
@@ -68,7 +68,7 @@ public:
 	bool getData(T* buffer, unsigned int nSamples)
 	{
 		if (dataSize() < nSamples) {
-			LogError("**** Underflow in %s ring buffer, %u < %u", m_name, dataSize(), nSamples);
+			LogDebug("**** Underflow in %s ring buffer, %u < %u", m_name, dataSize(), nSamples);
 			return false;
 		}
 
@@ -85,7 +85,7 @@ public:
 	bool peek(T* buffer, unsigned int nSamples)
 	{
 		if (dataSize() < nSamples) {
-			LogError("**** Underflow peek in %s ring buffer, %u < %u", m_name, dataSize(), nSamples);
+			LogDebug("**** Underflow peek in %s ring buffer, %u < %u", m_name, dataSize(), nSamples);
 			return false;
 		}
 

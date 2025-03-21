@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2006-2016,2020,2024 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2006-2016,2020,2024,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ void CUDPSocket::startup()
 	WSAData data;
 	int wsaRet = ::WSAStartup(MAKEWORD(2, 2), &data);
 	if (wsaRet != 0)
-		LogError("Error from WSAStartup");
+		LogDebug("Error from WSAStartup");
 #endif
 }
 
@@ -94,14 +94,14 @@ int CUDPSocket::lookup(const std::string& hostname, unsigned short port, sockadd
 	/* Port is always digits, no needs to lookup service */
 	hints.ai_flags |= AI_NUMERICSERV;
 
-	int err = ::getaddrinfo(hostname.empty() ? NULL : hostname.c_str(), portstr.c_str(), &hints, &res);
+	int err = ::getaddrinfo(hostname.empty() ? nullptr : hostname.c_str(), portstr.c_str(), &hints, &res);
 	if (err != 0) {
 		sockaddr_in* paddr = (sockaddr_in*)&addr;
 		::memset(paddr, 0x00U, address_length = sizeof(sockaddr_in));
 		paddr->sin_family = AF_INET;
 		paddr->sin_port = htons(port);
 		paddr->sin_addr.s_addr = htonl(INADDR_NONE);
-		LogError("Cannot find address for host %s", hostname.c_str());
+		LogDebug("Cannot find address for host %s", hostname.c_str());
 		return err;
 	}
 
@@ -119,7 +119,7 @@ bool CUDPSocket::match(const sockaddr_storage& addr1, const sockaddr_storage& ad
 	if (addr1.ss_family != addr2.ss_family)
 		return false;
 
-	if (type == IMT_ADDRESS_AND_PORT) {
+	if (type == IPMATCHTYPE::ADDRESS_AND_PORT) {
 		switch (addr1.ss_family) {
 			case AF_INET:
 				struct sockaddr_in *in_1, *in_2;
@@ -134,7 +134,7 @@ bool CUDPSocket::match(const sockaddr_storage& addr1, const sockaddr_storage& ad
 			default:
 				return false;
 		}
-	} else if (type == IMT_ADDRESS_ONLY) {
+	} else if (type == IPMATCHTYPE::ADDRESS_ONLY) {
 		switch (addr1.ss_family) {
 			case AF_INET:
 				struct sockaddr_in *in_1, *in_2;
@@ -187,7 +187,7 @@ bool CUDPSocket::open()
 	// To determine protocol family, call lookup() on the local address first.
 	int err = lookup(m_localAddress, m_localPort, addr, addrlen, hints);
 	if (err != 0) {
-		LogError("The local address is invalid - %s", m_localAddress.c_str());
+		LogDebug("The local address is invalid - %s", m_localAddress.c_str());
 		return false;
 	}
 
@@ -196,9 +196,9 @@ bool CUDPSocket::open()
 	m_fd = ::socket(m_af, SOCK_DGRAM, 0);
 	if (m_fd < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogError("Cannot create the UDP socket, err: %lu", ::GetLastError());
+		LogDebug("Cannot create the UDP socket, err: %lu", ::GetLastError());
 #else
-		LogError("Cannot create the UDP socket, err: %d", errno);
+		LogDebug("Cannot create the UDP socket, err: %d", errno);
 #endif
 		return false;
 	}
@@ -207,9 +207,9 @@ bool CUDPSocket::open()
 		int reuse = 1;
 		if (::setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
-			LogError("Cannot set the UDP socket option, err: %lu", ::GetLastError());
+			LogDebug("Cannot set the UDP socket option, err: %lu", ::GetLastError());
 #else
-			LogError("Cannot set the UDP socket option, err: %d", errno);
+			LogDebug("Cannot set the UDP socket option, err: %d", errno);
 #endif
 			close();
 			return false;
@@ -217,9 +217,9 @@ bool CUDPSocket::open()
 
 		if (::bind(m_fd, (sockaddr*)&addr, addrlen) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
-			LogError("Cannot bind the UDP address, err: %lu", ::GetLastError());
+			LogDebug("Cannot bind the UDP address, err: %lu", ::GetLastError());
 #else
-			LogError("Cannot bind the UDP address, err: %d", errno);
+			LogDebug("Cannot bind the UDP address, err: %d", errno);
 #endif
 			close();
 			return false;
@@ -233,7 +233,7 @@ bool CUDPSocket::open()
 
 int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storage& address, unsigned int &addressLength)
 {
-	assert(buffer != NULL);
+	assert(buffer != nullptr);
 	assert(length > 0U);
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -258,9 +258,9 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 #endif
 	if (ret < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogError("Error returned from UDP poll, err: %lu", ::GetLastError());
+		LogDebug("Error returned from UDP poll, err: %lu", ::GetLastError());
 #else
-		LogError("Error returned from UDP poll, err: %d", errno);
+		LogDebug("Error returned from UDP poll, err: %d", errno);
 #endif
 		return -1;
 	}
@@ -281,9 +281,9 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 #endif
 	if (len <= 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogError("Error returned from recvfrom, err: %lu", ::GetLastError());
+		LogDebug("Error returned from recvfrom, err: %lu", ::GetLastError());
 #else
-		LogError("Error returned from recvfrom, err: %d", errno);
+		LogDebug("Error returned from recvfrom, err: %d", errno);
 
 		if (len == -1 && errno == ENOTSOCK) {
 			LogMessage("Re-opening UDP port on %hu", m_localPort);
@@ -301,7 +301,7 @@ int CUDPSocket::read(unsigned char* buffer, unsigned int length, sockaddr_storag
 
 bool CUDPSocket::write(const unsigned char* buffer, unsigned int length, const sockaddr_storage& address, unsigned int addressLength)
 {
-	assert(buffer != NULL);
+	assert(buffer != nullptr);
 	assert(length > 0U);
 #if defined(_WIN32) || defined(_WIN64)
 	assert(m_fd != INVALID_SOCKET);
@@ -319,9 +319,9 @@ bool CUDPSocket::write(const unsigned char* buffer, unsigned int length, const s
 
 	if (ret < 0) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogError("Error returned from sendto, err: %lu", ::GetLastError());
+		LogDebug("Error returned from sendto, err: %lu", ::GetLastError());
 #else
-		LogError("Error returned from sendto, err: %d", errno);
+		LogDebug("Error returned from sendto, err: %d", errno);
 #endif
 	} else {
 #if defined(_WIN32) || defined(_WIN64)

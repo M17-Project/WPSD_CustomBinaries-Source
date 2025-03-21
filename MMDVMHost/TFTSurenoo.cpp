@@ -1,6 +1,6 @@
 /*
  *   Copyright (C) 2019 by SASANO Takayoshi JG1UAA
- *   Copyright (C) 2015,2016,2018,2019,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2018,2019,2020,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,18 +56,28 @@ static const struct layoutdef Layout[] = {
 #define Y_WIDTH			Layout[m_screenLayout].y_width
 #define ROTATION		Layout[m_screenLayout].rotation
 
-enum LcdColour {
-	COLOUR_BLACK, COLOUR_RED, COLOUR_GREEN, COLOUR_BLUE,
-	COLOUR_YELLOW, COLOUR_CYAN, COLOUR_MAGENTA, COLOUR_GREY,
-	COLOUR_DARK_GREY, COLOUR_DARK_RED, COLOUR_DARK_GREEN, COLOUR_DARK_BLUE,
-	COLOUR_DARK_YELLOW, COLOUR_DARK_CYAN, COLOUR_DARK_MAGENTA, COLOUR_WHITE
-};
+#define	COLOUR_BLACK			0
+#define	COLOUR_RED				1
+#define	COLOUR_GREEN			2
+#define	COLOUR_BLUE				3
+#define	COLOUR_YELLOW			4
+#define	COLOUR_CYAN				5
+#define	COLOUR_MAGENTA			6
+#define	COLOUR_GREY				7
+#define	COLOUR_DARK_GREY		8
+#define	COLOUR_DARK_RED			9
+#define	COLOUR_DARK_GREEN		10
+#define	COLOUR_DARK_BLUE		11
+#define	COLOUR_DARK_YELLOW		12
+#define	COLOUR_DARK_CYAN		13
+#define	COLOUR_DARK_MAGENTA		14
+#define	COLOUR_WHITE			15
 
-#define INFO_COLOUR		COLOUR_CYAN
-#define EXT_COLOUR		COLOUR_DARK_GREEN
-#define BG_COLOUR		COLOUR_BLACK
-#define ERROR_COLOUR		COLOUR_DARK_RED
-#define MODE_COLOUR   		COLOUR_YELLOW
+#define INFO_COLOUR				COLOUR_CYAN
+#define EXT_COLOUR				COLOUR_DARK_GREEN
+#define BG_COLOUR				COLOUR_BLACK
+#define ERROR_COLOUR			COLOUR_DARK_RED
+#define MODE_COLOUR   			COLOUR_YELLOW
 
 // MODE_FONT_SIZE should be equal or larger than STATUS_FONT_SIZE
 #define MODE_FONT_SIZE		Layout[m_screenLayout].mode_font_size
@@ -106,10 +116,11 @@ m_duplex(duplex),
 //m_duplex(true),                      // uncomment to force duplex display for testing!
 m_refresh(false),
 m_refreshTimer(1000U, 0U, REFRESH_PERIOD),
-m_lineBuf(NULL),
+m_lineBuf(nullptr),
+m_temp(),
 m_screenLayout(screenLayout)
 {
-	assert(serial != NULL);
+	assert(serial != nullptr);
 	assert(brightness >= 0U && brightness <= 255U);
 }
 
@@ -121,18 +132,12 @@ bool CTFTSurenoo::open()
 {
 	bool ret = m_serial->open();
 	if (!ret) {
-		LogError("Cannot open the port for the TFT Serial");
+		LogDebug("Cannot open the port for the TFT Serial");
 		delete m_serial;
 		return false;
 	}
 
 	m_lineBuf = new char[statusLineOffset(STATUS_LINES)];
-	if (m_lineBuf == NULL) {
-		LogError("Cannot allocate line buffer");
-		m_serial->close();
-		delete m_serial;
-		return false;
-	}
 
 	lcdReset();
 	clearScreen(BG_COLOUR);
@@ -156,7 +161,7 @@ void CTFTSurenoo::setIdleInt()
 
 void CTFTSurenoo::setErrorInt(const char* text)
 {
-	assert(text != NULL);
+	assert(text != nullptr);
 
 	setModeLine(STR_MMDVM);
 	setStatusLine(statusLineNo(0), text);
@@ -196,11 +201,11 @@ void CTFTSurenoo::setFMInt()
 
 void CTFTSurenoo::writeDStarInt(const char* my1, const char* my2, const char* your, const char* type, const char* reflector)
 {
-	assert(my1 != NULL);
-	assert(my2 != NULL);
-	assert(your != NULL);
-	assert(type != NULL);
-	assert(reflector != NULL);
+	assert(my1 != nullptr);
+	assert(my2 != nullptr);
+	assert(your != nullptr);
+	assert(type != nullptr);
+	assert(reflector != nullptr);
 
 	setModeLine(STR_MMDVM);
 
@@ -228,7 +233,7 @@ void CTFTSurenoo::clearDStarInt()
 
 void CTFTSurenoo::writeDMRInt(unsigned int slotNo, const std::string& src, bool group, const std::string& dst, const char* type)
 {
-	assert(type != NULL);
+	assert(type != nullptr);
 
 	if (m_mode != MODE_DMR) {
 		setModeLine(STR_DMR);
@@ -252,7 +257,7 @@ void CTFTSurenoo::writeDMRInt(unsigned int slotNo, const std::string& src, bool 
 
 int CTFTSurenoo::writeDMRIntEx(unsigned int slotNo, const CUserDBentry& src, bool group, const std::string& dst, const char* type)
 {
-	assert(type != NULL);
+	assert(type != nullptr);
 
 	// duplex mode is not supported
 	if (m_duplex)
@@ -285,10 +290,10 @@ void CTFTSurenoo::clearDMRInt(unsigned int slotNo)
 
 void CTFTSurenoo::writeFusionInt(const char* source, const char* dest, unsigned char dgid, const char* type, const char* origin)
 {
-	assert(source != NULL);
-	assert(dest != NULL);
-	assert(type != NULL);
-	assert(origin != NULL);
+	assert(source != nullptr);
+	assert(dest != nullptr);
+	assert(type != nullptr);
+	assert(origin != nullptr);
 
 	setModeLine(STR_YSF);
 
@@ -314,8 +319,8 @@ void CTFTSurenoo::clearFusionInt()
 
 void CTFTSurenoo::writeP25Int(const char* source, bool group, unsigned int dest, const char* type)
 {
-	assert(source != NULL);
-	assert(type != NULL);
+	assert(source != nullptr);
+	assert(type != nullptr);
 
 	setModeLine(STR_P25);
 
@@ -335,8 +340,8 @@ void CTFTSurenoo::clearP25Int()
 
 void CTFTSurenoo::writeNXDNInt(const char* source, bool group, unsigned int dest, const char* type)
 {
-	assert(source != NULL);
-	assert(type != NULL);
+	assert(source != nullptr);
+	assert(type != nullptr);
 
 	if (m_mode != MODE_NXDN)
 		setModeLine(STR_NXDN);
@@ -352,7 +357,7 @@ void CTFTSurenoo::writeNXDNInt(const char* source, bool group, unsigned int dest
 
 int CTFTSurenoo::writeNXDNIntEx(const CUserDBentry& source, bool group, unsigned int dest, const char* type)
 {
-	assert(type != NULL);
+	assert(type != nullptr);
 
 	setModeLine(STR_NXDN);
 	setStatusLine(statusLineNo(2), (source.get(keyFIRST_NAME) + " " + source.get(keyLAST_NAME)).c_str());
@@ -372,9 +377,9 @@ void CTFTSurenoo::clearNXDNInt()
 
 void CTFTSurenoo::writeM17Int(const char* source, const char* dest, const char* type)
 {
-	assert(source != NULL);
-	assert(dest != NULL);
-	assert(type != NULL);
+	assert(source != nullptr);
+	assert(dest != nullptr);
+	assert(type != nullptr);
 
 	if (m_mode != MODE_M17)
 		setModeLine(STR_M17);
@@ -477,7 +482,7 @@ void CTFTSurenoo::refreshDisplay(void)
 	// clear display
 	::snprintf(m_temp, sizeof(m_temp), "BOXF(%d,%d,%d,%d,%d);",
 		   0, 0, X_WIDTH - 1, Y_WIDTH - 1, BG_COLOUR);
-	m_serial->write((unsigned char*)m_temp, ::strlen(m_temp));
+	m_serial->write((unsigned char*)m_temp, (unsigned int)::strlen(m_temp));
 
 	// mode line
 	::snprintf(m_temp, sizeof(m_temp), "DCV%d(%d,%d,'%s',%d);",
