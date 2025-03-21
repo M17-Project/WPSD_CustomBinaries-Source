@@ -14,7 +14,7 @@ find . -name Version.h -exec sed -i -e "/const char\* VERSION =/ s/\"[^\"]*\"/\"
 
 # build!
 cd $SRC_DIR/APRSGateway && make clean && make -j$(nproc) && make install && make clean \
-  && cd $SRC_DIR/MMDVMHost && make clean && make -f Makefile.wpsd -j$(nproc) && make -f Makefile.WPSD install && make clean \
+  && cd $SRC_DIR/MMDVMHost && make clean && make -f Makefile.WPSD -j$(nproc) && make -f Makefile.WPSD install && make clean \
   && cd $SRC_DIR/DAPNETGateway && make clean && make -j$(nproc) && make install && make clean \
   && cd $SRC_DIR/DMRGateway && make -f $MAKEFILE clean && make -f $MAKEFILE -j$(nproc) && make -f $MAKEFILE install && make -f $MAKEFILE clean \
   && cd $SRC_DIR/AMBEServer && make clean && make -j$(nproc) && make install && make clean \
