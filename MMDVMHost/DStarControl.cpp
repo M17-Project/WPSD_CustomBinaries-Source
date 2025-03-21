@@ -219,7 +219,7 @@ bool CDStarControl::writeModem(unsigned char *data, unsigned int len)
 
 		// Is this a transmission destined for a repeater?
 		if (!header.isRepeater()) {
-			LogMessage("D-Star, non repeater RF header received from %8.8s", my1);
+			LogDebug("D-Star, non repeater RF header received from %8.8s", my1);
 			m_rfState = RPT_RF_STATE::INVALID;
 			return true;
 		}
@@ -460,7 +460,7 @@ bool CDStarControl::writeModem(unsigned char *data, unsigned int len)
 
 			// Is this a transmission destined for a repeater?
 			if (!m_rfHeader.isRepeater()) {
-				LogMessage("D-Star, non repeater RF header received from %8.8s", my1);
+				LogDebug("D-Star, non repeater RF header received from %8.8s", my1);
 				m_rfState = RPT_RF_STATE::INVALID;
 				return true;
 			}
