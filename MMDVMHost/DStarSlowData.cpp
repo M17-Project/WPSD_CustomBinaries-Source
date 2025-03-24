@@ -98,7 +98,7 @@ CDStarHeader* CDStarSlowData::addHeader(const unsigned char* data, unsigned int 
 	bool ret = CCRC::checkCCITT161(m_header, DSTAR_HEADER_LENGTH_BYTES);
 	if (!ret) {
 		if (m_ptr == 45U)
-			LogMessage("D-Star, invalid slow data header");
+			LogDebug("D-Star, invalid slow data header");
 		return nullptr;
 	}
 
