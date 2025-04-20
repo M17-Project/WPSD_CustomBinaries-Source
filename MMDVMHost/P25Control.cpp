@@ -97,7 +97,7 @@ m_fp(nullptr)
 	::memset(m_netLDU2, 0x00U, 9U * 25U);
 
 	m_lastIMBE = new unsigned char[11U];
-	::memcpy(m_lastIMBE, P25_nullptr_IMBE, 11U);
+	::memcpy(m_lastIMBE, P25_NULL_IMBE, 11U);
 
 	m_rfLDU = new unsigned char[P25_LDU_FRAME_LENGTH_BYTES];
 	::memset(m_rfLDU, 0x00U, P25_LDU_FRAME_LENGTH_BYTES);
@@ -785,7 +785,7 @@ void CP25Control::writeQueueRF(const unsigned char* data, unsigned int length)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (length + 1U)) {
-		LogDebug("P25, overflow in the P25 RF queue");
+		LogError("P25, overflow in the P25 RF queue");
 		return;
 	}
 
@@ -804,7 +804,7 @@ void CP25Control::writeQueueNet(const unsigned char* data, unsigned int length)
 
 	unsigned int space = m_queue.freeSpace();
 	if (space < (length + 1U)) {
-		LogDebug("P25, overflow in the P25 RF queue");
+		LogError("P25, overflow in the P25 RF queue");
 		return;
 	}
 

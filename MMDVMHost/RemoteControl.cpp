@@ -54,7 +54,7 @@ CRemoteControl::~CRemoteControl()
 bool CRemoteControl::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("Unable to resolve the address of the remote control port");
+		LogError("Unable to resolve the address of the remote control port");
 		return false;
 	}
 

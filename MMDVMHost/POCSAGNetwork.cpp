@@ -47,7 +47,7 @@ CPOCSAGNetwork::~CPOCSAGNetwork()
 bool CPOCSAGNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("Unable to resolve the address of the DAPNET Gateway");
+		LogError("Unable to resolve the address of the DAPNET Gateway");
 		return false;
 	}
 

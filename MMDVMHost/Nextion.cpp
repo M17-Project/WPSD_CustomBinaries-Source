@@ -164,7 +164,7 @@ bool CNextion::open()
 
 	bool ret = m_serial->open();
 	if (!ret) {
-		LogDebug("Cannot open the port for the Nextion display");
+		LogError("Cannot open the port for the Nextion display");
 		delete m_serial;
 		return false;
 	}

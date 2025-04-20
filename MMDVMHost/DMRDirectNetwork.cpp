@@ -125,7 +125,7 @@ void CDMRDirectNetwork::setConfig(const std::string& callsign, unsigned int rxFr
 bool CDMRDirectNetwork::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("DMR, Could not lookup the address of the DMR Network");
+		LogError("DMR, Could not lookup the address of the DMR Network");
 		return false;
 	}
 
@@ -376,7 +376,7 @@ void CDMRDirectNetwork::clock(unsigned int ms)
 	unsigned int addrlen;
 	int length = m_socket.read(m_buffer, BUFFER_LENGTH, address, addrlen);
 	if (length < 0) {
-		LogDebug("DMR, Socket has failed, retrying connection to the master");
+		LogError("DMR, Socket has failed, retrying connection to the master");
 		close(false);
 		open();
 		return;
@@ -407,7 +407,7 @@ void CDMRDirectNetwork::clock(unsigned int ms)
 				/* Once the modem death spiral has been prevented in Modem.cpp
 				   the Network sometimes times out and reaches here.
 				   We want it to reconnect so... */
-				LogDebug("DMR, Login to the master has failed, retrying network ...");
+				LogError("DMR, Login to the master has failed, retrying network ...");
 				close(false);
 				open();
 				return;
@@ -451,7 +451,7 @@ void CDMRDirectNetwork::clock(unsigned int ms)
 				break;
 			}
 		} else if (::memcmp(m_buffer, "MSTCL", 5U) == 0) {
-			LogDebug("DMR, Master is closing down");
+			LogError("DMR, Master is closing down");
 			close(false);
 			open();
 		} else if (::memcmp(m_buffer, "MSTPONG", 7U) == 0) {
@@ -465,7 +465,7 @@ void CDMRDirectNetwork::clock(unsigned int ms)
 
 	m_timeoutTimer.clock(ms);
 	if (m_timeoutTimer.isRunning() && m_timeoutTimer.hasExpired()) {
-		LogDebug("DMR, Connection to the master has timed out, retrying connection");
+		LogError("DMR, Connection to the master has timed out, retrying connection");
 		close(false);
 		open();
 	}
@@ -634,7 +634,7 @@ bool CDMRDirectNetwork::write(const unsigned char* data, unsigned int length)
 
 	bool ret = m_socket.write(data, length, m_addr, m_addrLen);
 	if (!ret) {
-		LogDebug("DMR, Socket has failed when writing data to the master, retrying connection");
+		LogError("DMR, Socket has failed when writing data to the master, retrying connection");
 		close(false);
 		open();
 		return false;

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2020,2024,2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #include "StopWatch.h"
 #include "Version.h"
 #include "Thread.h"
-#include "Voice.h"
 #include "Timer.h"
 #include "Utils.h"
 #include "Log.h"
@@ -60,6 +59,17 @@ const char* DEFAULT_INI_FILE = "/etc/NXDNGateway.ini";
 #include <ctime>
 #include <cstring>
 
+static bool m_killed = false;
+static int  m_signal = 0;
+
+#if !defined(_WIN32) && !defined(_WIN64)
+static void sigHandler(int signum)
+{
+	m_killed = true;
+	m_signal = signum;
+}
+#endif
+
 const unsigned char NXDN_TYPE_DCALL_HDR = 0x09U;
 const unsigned char NXDN_TYPE_DCALL = 0x0BU;
 const unsigned char NXDN_TYPE_TX_REL = 0x08U;
@@ -91,17 +101,52 @@ int main(int argc, char** argv)
 		}
 	}
 
-	CNXDNGateway* gateway = new CNXDNGateway(std::string(iniFile));
-	gateway->run();
-	delete gateway;
 
-	return 0;
+#if !defined(_WIN32) && !defined(_WIN64)
+	::signal(SIGINT,  sigHandler);
+	::signal(SIGTERM, sigHandler);
+	::signal(SIGHUP,  sigHandler);
+#endif
+
+	int ret = 0;
+
+	do {
+		m_signal = 0;
+		m_killed = false;
+
+		CNXDNGateway* gateway = new CNXDNGateway(std::string(iniFile));
+		ret = gateway->run();
+
+		delete gateway;
+
+		switch (m_signal) {
+			case 0:
+				break;
+			case 2:
+				::LogInfo("NXDNGateway-%s exited on receipt of SIGINT", VERSION);
+				break;
+			case 15:
+				::LogInfo("NXDNGateway-%s exited on receipt of SIGTERM", VERSION);
+				break;
+			case 1:
+				::LogInfo("NXDNGateway-%s is restarting on receipt of SIGHUP", VERSION);
+				break;
+			default:
+				::LogInfo("NXDNGateway-%s exited on receipt of an unknown signal", VERSION);
+				break;
+		}
+	} while (m_signal == 1);
+
+	::LogFinalise();
+
+	return ret;
 }
 
 CNXDNGateway::CNXDNGateway(const std::string& file) :
 m_conf(file),
-m_writer(NULL),
-m_gps(NULL)
+m_writer(nullptr),
+m_gps(nullptr),
+m_voice(nullptr)
 {
 	CUDPSocket::startup();
 }
@@ -111,12 +156,12 @@ CNXDNGateway::~CNXDNGateway()
 	CUDPSocket::shutdown();
 }
 
-void CNXDNGateway::run()
+int CNXDNGateway::run()
 {
 	bool ret = m_conf.read();
 	if (!ret) {
 		::fprintf(stderr, "NXDNGateway: cannot read the .ini file\n");
-		return;
+		return 1;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -126,7 +171,7 @@ void CNXDNGateway::run()
 		pid_t pid = ::fork();
 		if (pid == -1) {
 			::fprintf(stderr, "Couldn't fork() , exiting\n");
-			return;
+			return 1;
 		}
 		else if (pid != 0) {
 			exit(EXIT_SUCCESS);
@@ -135,21 +180,21 @@ void CNXDNGateway::run()
 		// Create new session and process group
 		if (::setsid() == -1) {
 			::fprintf(stderr, "Couldn't setsid(), exiting\n");
-			return;
+			return 1;
 		}
 
 		// Set the working directory to the root directory
 		if (::chdir("/") == -1) {
 			::fprintf(stderr, "Couldn't cd /, exiting\n");
-			return;
+			return 1;
 		}
 
 		// If we are currently root...
 		if (getuid() == 0) {
 			struct passwd* user = ::getpwnam("mmdvm");
-			if (user == NULL) {
+			if (user == nullptr) {
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
-				return;
+				return 1;
 			}
 
 			uid_t mmdvm_uid = user->pw_uid;
@@ -158,18 +203,18 @@ void CNXDNGateway::run()
 			// Set user and group ID's to mmdvm:mmdvm
 			if (setgid(mmdvm_gid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm GID, exiting\n");
-				return;
+				return 1;
 			}
 
 			if (setuid(mmdvm_uid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm UID, exiting\n");
-				return;
+				return 1;
 			}
 
 			// Double check it worked (AKA Paranoia) 
 			if (setuid(0) != -1) {
 				::fprintf(stderr, "It's possible to regain root - something is wrong!, exiting\n");
-				return;
+				return 1;
 			}
 		}
 	}
@@ -182,7 +227,7 @@ void CNXDNGateway::run()
 #endif
 	if (!ret) {
 		::fprintf(stderr, "NXDNGateway: unable to open the log file\n");
-		return;
+		return 1;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -195,7 +240,7 @@ void CNXDNGateway::run()
 
 	createGPS();
 
-	IRptNetwork* localNetwork = NULL;
+	IRptNetwork* localNetwork = nullptr;
 	std::string protocol = m_conf.getRptProtocol();
 
 	if (protocol == "Kenwood")
@@ -204,27 +249,24 @@ void CNXDNGateway::run()
 		localNetwork = new CIcomNetwork(m_conf.getMyPort(), m_conf.getRptAddress(), m_conf.getRptPort(), m_conf.getDebug());
 
 	ret = localNetwork->open();
-	if (!ret) {
-		::LogFinalise();
-		return;
-	}
+	if (!ret)
+		return 1;
 
 	CNXDNNetwork remoteNetwork(m_conf.getNetworkPort(), m_conf.getCallsign(), m_conf.getNetworkDebug());
 	ret = remoteNetwork.open();
 	if (!ret) {
 		localNetwork->close();
 		delete localNetwork;
-		::LogFinalise();
-		return;
+		return 1;
 	}
 
-	CUDPSocket* remoteSocket = NULL;
+	CUDPSocket* remoteSocket = nullptr;
 	if (m_conf.getRemoteCommandsEnabled()) {
 		remoteSocket = new CUDPSocket(m_conf.getRemoteCommandsPort());
 		ret = remoteSocket->open();
 		if (!ret) {
 			delete remoteSocket;
-			remoteSocket = NULL;
+			remoteSocket = nullptr;
 		}
 	}
 
@@ -249,13 +291,12 @@ void CNXDNGateway::run()
 	CStopWatch stopWatch;
 	stopWatch.start();
 
-	CVoice* voice = NULL;
 	if (m_conf.getVoiceEnabled()) {
-		voice = new CVoice(m_conf.getVoiceDirectory(), m_conf.getVoiceLanguage(), NXDN_VOICE_ID);
-		bool ok = voice->open();
+		m_voice = new CVoice(m_conf.getVoiceDirectory(), m_conf.getVoiceLanguage(), NXDN_VOICE_ID);
+		bool ok = m_voice->open();
 		if (!ok) {
-			delete voice;
-			voice = NULL;
+			delete m_voice;
+			m_voice = nullptr;
 		}
 	}
 
@@ -275,7 +316,7 @@ void CNXDNGateway::run()
 	std::vector<CStaticTG> staticTGs;
 	for (std::vector<unsigned short>::const_iterator it = staticIds.cbegin(); it != staticIds.cend(); ++it) {
 		CNXDNReflector* reflector = reflectors.find(*it);
-		if (reflector != NULL) {
+		if (reflector != nullptr) {
 			CStaticTG staticTG;
 			staticTG.m_tg      = *it;
 			staticTG.m_addr    = reflector->m_addr;
@@ -290,14 +331,14 @@ void CNXDNGateway::run()
 		}
 	}
 
-	for (;;) {
+	while (!m_killed) {
 		unsigned char buffer[200U];
 		sockaddr_storage addr;
 		unsigned int addrLen;
 
 		// From the reflector to the MMDVM
 		unsigned int len = remoteNetwork.readData(buffer, 200U, addr, addrLen);
-		if (len > 0U) {
+		while (len > 0U) {
 			// If we're linked and it's from the right place, send it on
 			if (currentAddrLen > 0U && CUDPSocket::match(currentAddr, addr)) {
 				// Don't pass reflector control data through to the MMDVM
@@ -308,8 +349,10 @@ void CNXDNGateway::run()
 
 					bool grp = (buffer[9U] & 0x01U) == 0x01U;
 
-					if (grp && currentTG == dstTG)
-						localNetwork->write(buffer + 10U, len - 10U);
+					if (grp && currentTG == dstTG) {
+						if (!isVoiceBusy())
+							localNetwork->write(buffer + 10U, len - 10U);
+					}
 
 					hangTimer.start();
 				}
@@ -337,8 +380,10 @@ void CNXDNGateway::run()
 
 						bool grp = (buffer[9U] & 0x01U) == 0x01U;
 
-						if (grp && currentTG == dstTG && !poll)
-							localNetwork->write(buffer + 10U, len - 10U);
+						if (grp && currentTG == dstTG && !poll) {
+							if (!isVoiceBusy())
+								localNetwork->write(buffer + 10U, len - 10U);
+						}
 
 						LogMessage("Switched to reflector %u due to network activity", currentTG);
 
@@ -347,11 +392,13 @@ void CNXDNGateway::run()
 					}
 				}
 			}
+
+			len = remoteNetwork.readData(buffer, 200U, addr, addrLen);
 		}
 
 		// From the MMDVM to the reflector or control data
 		len = localNetwork->read(buffer);
-		if (len > 0U) {
+		while (len > 0U) {
 			// Only process the beginning and ending voice blocks here
 			if ((buffer[0U] == 0x81U || buffer[0U] == 0x83U) && (buffer[5U] == 0x01U || buffer[5U] == 0x08U)) {
 				grp = (buffer[7U] & 0x20U) == 0x20U;
@@ -376,7 +423,7 @@ void CNXDNGateway::run()
 						hangTimer.stop();
 					}
 
-					const CStaticTG* found = NULL;
+					const CStaticTG* found = nullptr;
 					for (std::vector<CStaticTG>::const_iterator it = staticTGs.cbegin(); it != staticTGs.cend(); ++it) {
 						if (dstTG == (*it).m_tg) {
 							found = &(*it);
@@ -384,9 +431,9 @@ void CNXDNGateway::run()
 						}
 					}
 
-					if (found == NULL) {
+					if (found == nullptr) {
 						CNXDNReflector* refl = reflectors.find(dstTG);
-						if (refl != NULL) {
+						if (refl != nullptr) {
 							currentTG       = dstTG;
 							currentAddr     = refl->m_addr;
 							currentAddrLen  = refl->m_addrLen;
@@ -420,22 +467,22 @@ void CNXDNGateway::run()
 						hangTimer.stop();
 					}
 
-					if (voice != NULL) {
+					if (m_voice != nullptr) {
 						if (currentAddrLen == 0U)
-							voice->unlinked();
+							m_voice->unlinked();
 						else
-							voice->linkedTo(currentTG);
+							m_voice->linkedTo(currentTG);
 					}
 				}
 
 				// If it's the end of the voice transmission, start the voice prompt
 				if ((buffer[0U] == 0x81U || buffer[0U] == 0x83U) && buffer[5U] == 0x08U) {
-					if (voice != NULL)
-						voice->eof();
+					if (m_voice != nullptr)
+						m_voice->eof();
 				}
 			}
 
-			if (m_gps != NULL) {
+			if (m_gps != nullptr) {
 				if ((buffer[0U] & 0xF0U) == 0x90U) {
 					switch (buffer[2U] & 0x3FU) {
 					case NXDN_TYPE_DCALL_HDR: {
@@ -463,15 +510,17 @@ void CNXDNGateway::run()
 				remoteNetwork.writeData(buffer, len, srcId, dstTG, grp, currentAddr, currentAddrLen);
 				hangTimer.start();
 			}
+
+			len = localNetwork->read(buffer);
 		}
 
-		if (voice != NULL) {
-			unsigned int length = voice->read(buffer);
+		if (m_voice != nullptr) {
+			unsigned int length = m_voice->read(buffer);
 			if (length > 0U)
 				localNetwork->write(buffer, length);
 		}
 
-		if (remoteSocket != NULL) {
+		if (remoteSocket != nullptr) {
 			sockaddr_storage addr;
 			unsigned int addrLen;
 			int res = remoteSocket->read(buffer, 200U, addr, addrLen);
@@ -493,7 +542,7 @@ void CNXDNGateway::run()
 							hangTimer.stop();
 						}
 
-						const CStaticTG* found = NULL;
+						const CStaticTG* found = nullptr;
 						for (std::vector<CStaticTG>::const_iterator it = staticTGs.cbegin(); it != staticTGs.cend(); ++it) {
 							if (tg == (*it).m_tg) {
 								found = &(*it);
@@ -501,9 +550,9 @@ void CNXDNGateway::run()
 							}
 						}
 
-						if (found == NULL) {
+						if (found == nullptr) {
 							CNXDNReflector* refl = reflectors.find(tg);
-							if (refl != NULL) {
+							if (refl != nullptr) {
 								currentTG       = tg;
 								currentAddr     = refl->m_addr;
 								currentAddrLen  = refl->m_addrLen;
@@ -536,11 +585,11 @@ void CNXDNGateway::run()
 							hangTimer.stop();
 						}
 
-						if (voice != NULL) {
+						if (m_voice != nullptr) {
 							if (currentAddrLen == 0U)
-								voice->unlinked();
+								m_voice->unlinked();
 							else
-								voice->linkedTo(currentTG);
+								m_voice->linkedTo(currentTG);
 						}
 					}
 				} else if (::memcmp(buffer + 0U, "status", 6U) == 0) {
@@ -549,11 +598,10 @@ void CNXDNGateway::run()
 				} else if (::memcmp(buffer + 0U, "host", 4U) == 0) {
 					std::string ref;
 
-					if (currentAddrLen > 0) {
+					if (currentAddrLen > 0U) {
 						char buffer[INET6_ADDRSTRLEN];
-						if (getnameinfo((struct sockaddr*)&currentAddr, currentAddrLen, buffer, sizeof(buffer), 0, 0, NI_NUMERICHOST | NI_NUMERICSERV) == 0) {
+						if (::getnameinfo((struct sockaddr*)&currentAddr, currentAddrLen, buffer, sizeof(buffer), 0, 0, NI_NUMERICHOST | NI_NUMERICSERV) == 0)
 							ref = std::string(buffer);
-						}
 					}
 
 					std::string host = std::string("nxdn:\"") + ((ref.length() == 0) ? "NONE" : ref) + "\"";
@@ -571,8 +619,8 @@ void CNXDNGateway::run()
 
 		localNetwork->clock(ms);
 
-		if (voice != NULL)
-			voice->clock(ms);
+		if (m_voice != nullptr)
+			m_voice->clock(ms);
 
 		hangTimer.clock(ms);
 		if (hangTimer.isRunning() && hangTimer.hasExpired()) {
@@ -585,8 +633,8 @@ void CNXDNGateway::run()
 					remoteNetwork.writeUnlink(currentAddr, currentAddrLen, currentTG);
 				}
 
-				if (voice != NULL)
-					voice->unlinked();
+				if (m_voice != nullptr)
+					m_voice->unlinked();
 
 				currentAddrLen = 0U;
 
@@ -609,19 +657,19 @@ void CNXDNGateway::run()
 			pollTimer.start();
 		}
 
-		if (m_writer != NULL)
+		if (m_writer != nullptr)
 			m_writer->clock(ms);
 
 		if (ms < 5U)
 			CThread::sleep(5U);
 	}
 
-	delete voice;
+	delete m_voice;
 
 	localNetwork->close();
 	delete localNetwork;
 
-	if (remoteSocket != NULL) {
+	if (remoteSocket != nullptr) {
 		remoteSocket->close();
 		delete remoteSocket;
 	}
@@ -630,13 +678,13 @@ void CNXDNGateway::run()
 
 	lookup->stop();
 
-	if (m_gps != NULL) {
+	if (m_gps != nullptr) {
 		m_writer->close();
 		delete m_writer;
 		delete m_gps;
 	}
 
-	::LogFinalise();
+	return 0;
 }
 
 void CNXDNGateway::createGPS()
@@ -677,10 +725,17 @@ void CNXDNGateway::createGPS()
 	bool ret = m_writer->open();
 	if (!ret) {
 		delete m_writer;
-		m_writer = NULL;
+		m_writer = nullptr;
 		return;
 	}
 
 	m_gps = new CGPSHandler(callsign, suffix, m_writer);
 }
 
+bool CNXDNGateway::isVoiceBusy() const
+{
+	if (m_voice == nullptr)
+		return false;
+
+	return m_voice->isBusy();
+}

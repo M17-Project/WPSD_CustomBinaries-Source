@@ -1,24 +1,33 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -s -O3 -Wall -std=c++0x -pthread
+CFLAGS  = -g -O3 -Wall -std=c++0x -pthread
 LIBS    = -lpthread
 LDFLAGS = -g
 
 OBJECTS = Network.o P25Parrot.o Parrot.o StopWatch.o Thread.o Timer.o UDPSocket.o
 
-pre-build:
-	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > GitVersion.h
+all:		P25Parrot
 
-all:		pre-build P25Parrot
-
-P25Parrot:	$(OBJECTS)
+P25Parrot:	GitVersion.h $(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o P25Parrot
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
+
+P25Parrot.o: GitVersion.h FORCE
+
+.PHONY: GitVersion.h
+
+FORCE:
+
 
 install:
 		install -m 755 P25Parrot $(HOME)/dev/WPSD-Binaries/
 
 clean:
 		$(RM) P25Parrot *.o *.d *.bak *~
+
+# Export the current git version if the index file exists, else 000...
+GitVersion.h:
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+

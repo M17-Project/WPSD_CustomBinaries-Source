@@ -74,7 +74,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 #if defined(__linux__)
 	FILE* fp = ::fopen("/proc/net/route" , "r");	// IPv4 routing
 	if (fp == nullptr) {
-		LogDebug("Unabled to open /proc/route");
+		LogError("Unabled to open /proc/route");
 		return;
 	}
 
@@ -110,13 +110,13 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 	char ifname[IF_NAMESIZE] = {};
 
 	if (::sysctl(mib, cnt, nullptr, &size, nullptr, 0) == -1 || size <= 0) {
-		LogDebug("Unable to estimate routing table size");
+		LogError("Unable to estimate routing table size");
 		return;
 	}
 
 	char *buf = new char[size];
 	if (::sysctl(mib, cnt, buf, &size, nullptr, 0) == -1) {
-		LogDebug("Unable to get routing table");
+		LogError("Unable to get routing table");
 		delete[] buf;
 		return;
 	}
@@ -142,7 +142,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 		dflt = ifname;
 #endif
 	if (dflt == nullptr) {
-		LogDebug("Unable to find the default route");
+		LogError("Unable to find the default route");
 		return;
 	}
 
@@ -153,7 +153,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 
 	struct ifaddrs* ifaddr;
 	if (::getifaddrs(&ifaddr) == -1) {
-		LogDebug("getifaddrs failure");
+		LogError("getifaddrs failure");
 		return;
 	}
 
@@ -167,7 +167,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 			char host[NI_MAXHOST];
 			int s = ::getnameinfo(ifa->ifa_addr, family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
 			if (s != 0) {
-				LogDebug("getnameinfo() failed: %s\n", gai_strerror(s));
+				LogError("getnameinfo() failed: %s\n", gai_strerror(s));
 				continue;
 			}
 
@@ -203,7 +203,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 #elif defined(_WIN32) || defined(_WIN64)
 	PMIB_IPFORWARDTABLE pIpForwardTable = (MIB_IPFORWARDTABLE *)::malloc(sizeof(MIB_IPFORWARDTABLE));
 	if (pIpForwardTable == nullptr) {
-		LogDebug("Error allocating memory");
+		LogError("Error allocating memory");
 		return;
 	}
 
@@ -212,7 +212,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 		::free(pIpForwardTable);
 		pIpForwardTable = (MIB_IPFORWARDTABLE *)::malloc(dwSize);
 		if (pIpForwardTable == nullptr) {
-			LogDebug("Error allocating memory");
+			LogError("Error allocating memory");
 			return;
 		}
 	}
@@ -220,7 +220,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 	DWORD ret = ::GetIpForwardTable(pIpForwardTable, &dwSize, 0);
 	if (ret != NO_ERROR) {
 		::free(pIpForwardTable);
-		LogDebug("GetIpForwardTable failed.");
+		LogError("GetIpForwardTable failed.");
 		return;
 	}
 
@@ -234,7 +234,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 
 	if (found == 999U) {
 		::free(pIpForwardTable);
-		LogDebug("Unable to find the default destination in the routing table.");
+		LogError("Unable to find the default destination in the routing table.");
 		return;
 	}
 
@@ -243,7 +243,7 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 
 	PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)::malloc(sizeof(IP_ADAPTER_INFO));
 	if (pAdapterInfo == nullptr) {
-		LogDebug("Error allocating memory");
+		LogError("Error allocating memory");
 		return;
 	}
     
@@ -252,14 +252,14 @@ void CNetworkInfo::getNetworkInterface(unsigned char* info)
 		::free(pAdapterInfo);
 		pAdapterInfo = (IP_ADAPTER_INFO *)::malloc(buflen);
 		if (pAdapterInfo == nullptr) {
-			LogDebug("Error allocating memory");
+			LogError("Error allocating memory");
 			return;
 		}
 	}
 
 	if (::GetAdaptersInfo(pAdapterInfo, &buflen) != NO_ERROR) {
 		::free(pAdapterInfo);
-		LogDebug("Call to GetAdaptersInfo failed.");
+		LogError("Call to GetAdaptersInfo failed.");
 		return;
 	}
 

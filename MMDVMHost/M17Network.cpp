@@ -58,7 +58,7 @@ CM17Network::~CM17Network()
 bool CM17Network::open()
 {
 	if (m_addrLen == 0U) {
-		LogDebug("M17, unable to resolve the gateway address");
+		LogError("M17, unable to resolve the gateway address");
 		return false;
 	}
 

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2018 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2018,2024 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include "APRSWriter.h"
 #include "GPSHandler.h"
+#include "Voice.h"
 #include "Timer.h"
 #include "Conf.h"
 
@@ -46,14 +47,17 @@ public:
 	CNXDNGateway(const std::string& file);
 	~CNXDNGateway();
 
-	void run();
+	int run();
 
 private:
 	CConf        m_conf;
 	CAPRSWriter* m_writer;
 	CGPSHandler* m_gps;
+	CVoice*      m_voice;
 
 	void createGPS();
+
+	bool isVoiceBusy() const;
 };
 
 #endif
