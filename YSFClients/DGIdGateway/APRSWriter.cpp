@@ -285,7 +285,7 @@ void CAPRSWriter::sendIdFrameFixed()
 		m_callsign.c_str(), server.c_str(),
 		lat, (m_latitude < 0.0F)  ? 'S' : 'N', symbol[0],
 		lon, (m_longitude < 0.0F) ? 'W' : 'E', symbol[1],
-		float(m_height) * 3.28F, band, desc);
+		float(m_height) * 3.28F, band, desc, m_callsign.c_str());
 
 	if (m_debug)
 		LogDebug("APRS ==> %s", output);
