@@ -27,7 +27,6 @@ install:
 clean:
 		$(RM) P25Gateway *.o *.d *.bak *~
 
-# Export the current git version if the index file exists, else 000...
 GitVersion.h:
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 
