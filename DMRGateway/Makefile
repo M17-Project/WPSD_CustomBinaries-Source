@@ -2,11 +2,11 @@ CC      = cc
 CXX     = c++
 
 # Use the following CFLAGS and LIBS if you don't want to use gpsd.
-#CFLAGS  = -s -O3 -Wall -DHAVE_LOG_H -std=c++0x -pthread -DREMOTE_COMMAND_NO_LOG
+#CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H -std=c++0x -pthread -DREMOTE_COMMAND_NO_LOG 
 #LIBS    = -lpthread
 
 # Use the following CFLAGS and LIBS if you do want to use gpsd.
-CFLAGS  = -s -O3 -Wall -DHAVE_LOG_H -DUSE_GPSD -std=c++0x -pthread -DREMOTE_COMMAND_NO_LOG
+CFLAGS  = -g -O3 -Wall -DHAVE_LOG_H -DUSE_GPSD -std=c++0x -pthread
 LIBS    = -lpthread -lgps
 
 LDFLAGS = -g
@@ -31,12 +31,12 @@ DMRGateway.o: GitVersion.h FORCE
 FORCE:
 
 clean:
-		$(RM) DMRGateway *.o *.d *.bak *.out *~ GitVersion.h
+		$(RM) DMRGateway *.o *.d *.bak *~ GitVersion.h
 
 install:
 		install -m 755 DMRGateway $(HOME)/dev/WPSD-Binaries/
 
-# Export the current git version if the index file exists, else 000...
+
 GitVersion.h:
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 

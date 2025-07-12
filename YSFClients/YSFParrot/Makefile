@@ -1,6 +1,6 @@
 CC      = cc
 CXX     = c++
-CFLAGS  = -s -O3 -Wall -std=c++0x -pthread
+CFLAGS  = -g -O3 -Wall -std=c++0x -pthread
 LIBS    = -lpthread
 LDFLAGS = -g
 
@@ -27,4 +27,4 @@ clean:
 		$(RM) YSFParrot *.o *.d *.bak *~ GitVersion.h
  
 GitVersion.h:
-		echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@

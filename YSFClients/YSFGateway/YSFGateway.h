@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2020,2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -32,10 +32,10 @@
 
 #include <string>
 
-enum LINK_TYPE {
-	LINK_NONE,
-	LINK_YSF,
-	LINK_FCS
+enum class LINK_TYPE {
+	NONE,
+	YSF,
+	FCS
 };
 
 class CYSFGateway
@@ -68,8 +68,10 @@ private:
 	CUDPSocket*     m_remoteSocket;
 
 	void startupLinking();
+	void reconnectReflector(const std::string& nameOrId);
+	void disconnectCurrentReflector();
 	std::string calculateLocator();
-	void processWiresX(const unsigned char* buffer, const CYSFFICH& fich, bool dontProcessWiresXLocal, bool wiresXCommandPassthrough);
+	void processWiresX(const unsigned char* buffer, const CYSFFICH& fich, bool wiresXEnabledReflector, bool wiresXCommandPassthrough);
 	void processDTMF(unsigned char* buffer, unsigned char dt);
 	void createWiresX(CYSFNetwork* rptNetwork);
 	void createGPS();

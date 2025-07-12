@@ -21,12 +21,12 @@
 
 #include <wx/wx.h>
 
-const wxString VENDOR_NAME = wxT("W0CHP");
+const wxString VENDOR_NAME = wxT("G4KLX");
 
 #if defined(__WXDEBUG__)
-const wxString VERSION = wxT("20250312_WPSD");
+const wxString VERSION = wxT("20250712_WPSD");
 #else
-const wxString VERSION = wxT("20250312_WPSD");
+const wxString VERSION = wxT("20250712_WPSD");
 #endif
 
 #endif

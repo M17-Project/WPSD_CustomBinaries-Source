@@ -15,7 +15,7 @@ ircddbgatewayconfig:	$(OBJECTS) ../GUICommon/GUICommon.a ../Common/Common.a
 
 .PHONY: install
 install:
-		 install -m 0755 ircddbgatewayconfig $(DESTDIR)$(BINDIR)
+		install -m 0755 ircddbgatewayconfig $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

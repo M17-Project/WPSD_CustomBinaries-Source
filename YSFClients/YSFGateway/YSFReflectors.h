@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016-2021 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016-2021,2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
 #include <vector>
 #include <string>
 
-enum YSF_TYPE {
-	YT_YSF,
-	YT_FCS
+enum class YSF_TYPE {
+	YSF,
+	FCS
 };
 
 class CYSFReflector {
@@ -39,7 +39,7 @@ public:
 	m_count("000"),
 	m_addr(),
 	m_addrLen(0U),
-	m_type(YT_YSF),
+	m_type(YSF_TYPE::YSF),
 	m_wiresX(false)
 	{
 	}
@@ -56,7 +56,7 @@ public:
 
 class CYSFReflectors {
 public:
-	CYSFReflectors(const std::string& hostsFile, unsigned int reloadTime, bool makeUpper);
+	CYSFReflectors(const std::string& hostsFile, unsigned int reloadTime);
 	~CYSFReflectors();
 
 	void setParrot(const std::string& address, unsigned short port);	
@@ -92,7 +92,6 @@ private:
 	std::vector<CYSFReflector*> m_newReflectors;
 	std::vector<CYSFReflector*> m_currReflectors;
 	std::vector<CYSFReflector*> m_search;
-	bool                        m_makeUpper;
 	CTimer                      m_timer;
 
 	bool findById(unsigned int id) const;

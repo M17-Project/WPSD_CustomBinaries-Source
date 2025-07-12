@@ -14,7 +14,7 @@ texttransmitd:	$(OBJECTS) ../Common/Common.a
 
 .PHONY: install
 install:
-		 install -m 0755 texttransmitd $(DESTDIR)$(BINDIR)
+		install -m 0755 texttransmitd $(DESTDIR)$(BINDIR)
 
 .PHONY: clean
 clean:

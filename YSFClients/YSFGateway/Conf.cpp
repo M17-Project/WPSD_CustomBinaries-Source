@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015-2020,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,17 +26,17 @@
 
 const int BUFFER_SIZE = 500;
 
-enum SECTION {
-  SECTION_NONE,
-  SECTION_GENERAL,
-  SECTION_INFO,
-  SECTION_LOG,
-  SECTION_APRS,
-  SECTION_NETWORK,
-  SECTION_YSF_NETWORK,
-  SECTION_FCS_NETWORK,
-  SECTION_GPSD,
-  SECTION_REMOTE_COMMANDS
+enum class SECTION {
+	NONE,
+	GENERAL,
+	INFO,
+	LOG,
+	APRS,
+	NETWORK,
+	YSF_NETWORK,
+	FCS_NETWORK,
+	GPSD,
+	REMOTE_COMMANDS
 };
 
 CConf::CConf(const std::string& file) :
@@ -48,7 +48,6 @@ m_rptAddress(),
 m_rptPort(0U),
 m_myAddress(),
 m_myPort(0U),
-m_wiresXMakeUpper(true),
 m_wiresXCommandPassthrough(false),
 m_debug(false),
 m_daemon(false),
@@ -60,7 +59,6 @@ m_longitude(0.0F),
 m_height(0),
 m_name(),
 m_description(),
-m_aprsSymbol(),
 m_logDisplayLevel(0U),
 m_logFileLevel(0U),
 m_logFilePath(),
@@ -71,9 +69,11 @@ m_aprsAddress(),
 m_aprsPort(0U),
 m_aprsSuffix(),
 m_aprsDescription(),
+m_aprsSymbol("/r"),
 m_networkStartup(),
 m_networkOptions(),
 m_networkInactivityTimeout(0U),
+m_networkReconnect(false),
 m_networkRevert(false),
 m_networkDebug(false),
 m_ysfNetworkEnabled(false),
@@ -106,49 +106,49 @@ CConf::~CConf()
 bool CConf::read()
 {
     FILE* fp = ::fopen(m_file.c_str(), "rt");
-    if (fp == NULL) {
+    if (fp == nullptr) {
 	::fprintf(stderr, "Couldn't open the .ini file - %s\n", m_file.c_str());
 	return false;
     }
 
-    SECTION section = SECTION_NONE;
+    SECTION section = SECTION::NONE;
 
     char buffer[BUFFER_SIZE];
-    while (::fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+    while (::fgets(buffer, BUFFER_SIZE, fp) != nullptr) {
 	if (buffer[0U] == '#')
 		continue;
 
 	if (buffer[0U] == '[') {
 		if (::strncmp(buffer, "[General]", 9U) == 0)
-			section = SECTION_GENERAL;
+			section = SECTION::GENERAL;
 		else if (::strncmp(buffer, "[Info]", 6U) == 0)
-			section = SECTION_INFO;
+			section = SECTION::INFO;
 		else if (::strncmp(buffer, "[Log]", 5U) == 0)
-			section = SECTION_LOG;
+			section = SECTION::LOG;
 		else if (::strncmp(buffer, "[APRS]", 6U) == 0)
-			section = SECTION_APRS;
+			section = SECTION::APRS;
 		else if (::strncmp(buffer, "[Network]", 9U) == 0)
-			section = SECTION_NETWORK;
+			section = SECTION::NETWORK;
 		else if (::strncmp(buffer, "[YSF Network]", 13U) == 0)
-			section = SECTION_YSF_NETWORK;
+			section = SECTION::YSF_NETWORK;
 		else if (::strncmp(buffer, "[FCS Network]", 13U) == 0)
-			section = SECTION_FCS_NETWORK;
+			section = SECTION::FCS_NETWORK;
 		else if (::strncmp(buffer, "[GPSD]", 6U) == 0)
-			section = SECTION_GPSD;
+			section = SECTION::GPSD;
 		else if (::strncmp(buffer, "[Remote Commands]", 17U) == 0)
-			section = SECTION_REMOTE_COMMANDS;
+			section = SECTION::REMOTE_COMMANDS;
 		else
-			section = SECTION_NONE;
+			section = SECTION::NONE;
 
 		continue;
 	}
 
 	char* key = ::strtok(buffer, " \t=\r\n");
-	if (key == NULL)
+	if (key == nullptr)
 		continue;
 
-	char* value = ::strtok(NULL, "\r\n");
-	if (value == NULL)
+	char* value = ::strtok(nullptr, "\r\n");
+	if (value == nullptr)
 		continue;
 
 	// Remove quotes from the value
@@ -160,7 +160,7 @@ bool CConf::read()
 		char *p;
 
 		// if value is not quoted, remove after # (to make comment)
-		if ((p = strchr(value, '#')) != NULL)
+		if ((p = strchr(value, '#')) != nullptr)
 			*p = '\0';
 
 		// remove trailing tab/space
@@ -168,7 +168,7 @@ bool CConf::read()
 			*p = '\0';
 	}
 
-	if (section == SECTION_GENERAL) {
+	if (section == SECTION::GENERAL) {
 		if (::strcmp(key, "Callsign") == 0) {
 			// Convert the callsign to upper case
 			for (unsigned int i = 0U; value[i] != 0; i++)
@@ -189,15 +189,13 @@ bool CConf::read()
 			m_myAddress = value;
 		else if (::strcmp(key, "LocalPort") == 0)
 			m_myPort = (unsigned short)::atoi(value);
-		else if (::strcmp(key, "WiresXMakeUpper") == 0)
-			m_wiresXMakeUpper = ::atoi(value) == 1;
 		else if (::strcmp(key, "WiresXCommandPassthrough") == 0)
 			m_wiresXCommandPassthrough = ::atoi(value) == 1;
 		else if (::strcmp(key, "Debug") == 0)
 			m_debug = ::atoi(value) == 1;
 		else if (::strcmp(key, "Daemon") == 0)
 			m_daemon = ::atoi(value) == 1;
-	} else if (section == SECTION_INFO) {
+	} else if (section == SECTION::INFO) {
 		if (::strcmp(key, "TXFrequency") == 0)
 			m_txFrequency = (unsigned int)::atoi(value);
 		else if (::strcmp(key, "RXFrequency") == 0)
@@ -214,7 +212,7 @@ bool CConf::read()
 			m_name = value;
 		else if (::strcmp(key, "Description") == 0)
 			m_description = value;
-	} else if (section == SECTION_LOG) {
+	} else if (section == SECTION::LOG) {
 		if (::strcmp(key, "FilePath") == 0)
 			m_logFilePath = value;
 		else if (::strcmp(key, "FileRoot") == 0)
@@ -225,7 +223,7 @@ bool CConf::read()
 			m_logDisplayLevel = (unsigned int)::atoi(value);
 		else if (::strcmp(key, "FileRotate") == 0)
 			m_logFileRotate = ::atoi(value) == 1;
-	} else if (section == SECTION_APRS) {
+	} else if (section == SECTION::APRS) {
 		if (::strcmp(key, "Enable") == 0)
 			m_aprsEnabled = ::atoi(value) == 1;
 		else if (::strcmp(key, "Address") == 0)
@@ -238,18 +236,20 @@ bool CConf::read()
 			m_aprsDescription = value;
                 else if (::strcmp(key, "Symbol") == 0)
                         m_aprsSymbol = value;
-	} else if (section == SECTION_NETWORK) {
+	} else if (section == SECTION::NETWORK) {
 		if (::strcmp(key, "Startup") == 0)
 			m_networkStartup = value;
 		else if (::strcmp(key, "Options") == 0)
 			m_networkOptions = value;
 		else if (::strcmp(key, "InactivityTimeout") == 0)
 			m_networkInactivityTimeout = (unsigned int)::atoi(value);
+		else if (::strcmp(key, "Reconnect") == 0)
+			m_networkReconnect = ::atoi(value) == 1;
 		else if (::strcmp(key, "Revert") == 0)
 			m_networkRevert = ::atoi(value) == 1;
 		else if (::strcmp(key, "Debug") == 0)
 			m_networkDebug = ::atoi(value) == 1;
-	} else if (section == SECTION_YSF_NETWORK) {
+	} else if (section == SECTION::YSF_NETWORK) {
 		if (::strcmp(key, "Enable") == 0)
 			m_ysfNetworkEnabled = ::atoi(value) == 1;
 		else if (::strcmp(key, "Port") == 0)
@@ -274,21 +274,21 @@ bool CConf::read()
 			m_ysfNetworkYSF2P25Address = value;
 		else if (::strcmp(key, "YSF2P25Port") == 0)
 			m_ysfNetworkYSF2P25Port = (unsigned short)::atoi(value);
-	} else if (section == SECTION_FCS_NETWORK) {
+	} else if (section == SECTION::FCS_NETWORK) {
 		if (::strcmp(key, "Enable") == 0)
 			m_fcsNetworkEnabled = ::atoi(value) == 1;
 		else if (::strcmp(key, "Rooms") == 0)
 			m_fcsNetworkFile = value;
 		else if (::strcmp(key, "Port") == 0)
 			m_fcsNetworkPort = (unsigned short)::atoi(value);
-	} else if (section == SECTION_GPSD) {
+	} else if (section == SECTION::GPSD) {
 		if (::strcmp(key, "Enable") == 0)
 			m_gpsdEnabled = ::atoi(value) == 1;
 		else if (::strcmp(key, "Address") == 0)
 			m_gpsdAddress = value;
 		else if (::strcmp(key, "Port") == 0)
 			m_gpsdPort = value;
-	} else if (section == SECTION_REMOTE_COMMANDS) {
+	} else if (section == SECTION::REMOTE_COMMANDS) {
 		if (::strcmp(key, "Enable") == 0)
 			m_remoteCommandsEnabled = ::atoi(value) == 1;
 		else if (::strcmp(key, "Port") == 0)
@@ -334,11 +334,6 @@ std::string CConf::getMyAddress() const
 unsigned short CConf::getMyPort() const
 {
 	return m_myPort;
-}
-
-bool CConf::getWiresXMakeUpper() const
-{
-	return m_wiresXMakeUpper;
 }
 
 bool CConf::getWiresXCommandPassthrough() const
@@ -464,6 +459,11 @@ std::string CConf::getNetworkOptions() const
 unsigned int CConf::getNetworkInactivityTimeout() const
 {
 	return m_networkInactivityTimeout;
+}
+
+bool CConf::getNetworkReconnect() const
+{
+	return m_networkReconnect;
 }
 
 bool CConf::getNetworkRevert() const

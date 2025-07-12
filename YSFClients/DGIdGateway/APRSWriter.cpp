@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2016,2017,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2016,2017,2018,2020,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ bool CAPRSWriter::open()
 			return false;
 		}
 
-		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, NULL);
+		::gps_stream(&m_gpsdData, WATCH_ENABLE | WATCH_JSON, nullptr);
 
 		LogMessage("Connected to GPSD");
 	}
@@ -125,8 +125,8 @@ bool CAPRSWriter::open()
 
 void CAPRSWriter::write(const unsigned char* source, const char* type, unsigned char radio, float fLatitude, float fLongitude)
 {
-	assert(source != NULL);
-	assert(type != NULL);
+	assert(source != nullptr);
+	assert(type != nullptr);
 
 	char callsign[15U];
 	::memcpy(callsign, source, YSF_CALLSIGN_LENGTH);
@@ -219,7 +219,7 @@ void CAPRSWriter::close()
 
 #if defined(USE_GPSD)
 	if (m_gpsdEnabled) {
-		::gps_stream(&m_gpsdData, WATCH_DISABLE, NULL);
+		::gps_stream(&m_gpsdData, WATCH_DISABLE, nullptr);
 		::gps_close(&m_gpsdData);
 	}
 #endif
@@ -242,17 +242,17 @@ void CAPRSWriter::sendIdFrameFixed()
 		::sprintf(desc, "MMDVM Voice (C4FM)%s%s", m_desc.empty() ? "" : ", ", m_desc.c_str());
 	}
 
-        const char* band = "4m";
-        if (m_txFrequency >= 1200000000U)
-                band = "23cm/1.2GHz";
-        else if (m_txFrequency >= 420000000U)
-                band = "70cm";
-        else if (m_txFrequency >= 144000000U)
-                band = "2m";
-        else if (m_txFrequency >= 50000000U)
-                band = "6m";
-        else if (m_txFrequency >= 28000000U)
-                band = "10m";
+	const char* band = "4m";
+	if (m_txFrequency >= 1200000000U)
+		band = "23cm/1.2GHz";
+	else if (m_txFrequency >= 420000000U)
+		band = "70cm`";
+	else if (m_txFrequency >= 144000000U)
+		band = "2m";
+	else if (m_txFrequency >= 50000000U)
+		band = "6m";
+	else if (m_txFrequency >= 28000000U)
+		band = "10m";
 
 	double tempLat  = ::fabs(m_latitude);
 	double tempLong = ::fabs(m_longitude);
@@ -278,9 +278,9 @@ void CAPRSWriter::sendIdFrameFixed()
 		server.append("S");
 
         if (symbol.empty())
-                symbol.append("Wi");
+                symbol.append("D&");
 
-	char output[1000U];
+	char output[500U];
 	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%c%s%c%c/A=%06.0f%s %s\r\n%s>APDG03:>Powered by WPSD (https://wpsd.radio)\r\n",
 		m_callsign.c_str(), server.c_str(),
 		lat, (m_latitude < 0.0F)  ? 'S' : 'N', symbol[0],
@@ -300,20 +300,19 @@ void CAPRSWriter::sendIdFrameMobile()
 		return;
 
 #if GPSD_API_MAJOR_VERSION >= 7
-	if (::gps_read(&m_gpsdData, NULL, 0) <= 0)
+	if (::gps_read(&m_gpsdData, nullptr, 0) <= 0)
 		return;
 #else
 	if (::gps_read(&m_gpsdData) <= 0)
 		return;
 #endif
 
+
 #if GPSD_API_MAJOR_VERSION >= 10
 	if (m_gpsdData.fix.status != STATUS_FIX)
 #else
 	if (m_gpsdData.status != STATUS_FIX)
 #endif
-
-	if (m_gpsdData.fix.status != STATUS_FIX)
 		return;
 
 	bool latlonSet   = (m_gpsdData.set & LATLON_SET) == LATLON_SET;
@@ -345,18 +344,17 @@ void CAPRSWriter::sendIdFrameMobile()
 		::sprintf(desc, "MMDVM Voice (C4FM)%s%s", m_desc.empty() ? "" : ", ", m_desc.c_str());
 	}
 
-
-        const char* band = "4m";
-        if (m_txFrequency >= 1200000000U)
-                band = "23cm/1.2GHz";
-        else if (m_txFrequency >= 420000000U)
-                band = "70cm";
-        else if (m_txFrequency >= 144000000U)
-                band = "2m";
-        else if (m_txFrequency >= 50000000U)
-                band = "6m";
-        else if (m_txFrequency >= 28000000U)
-                band = "10m";
+	const char* band = "4m";
+	if (m_txFrequency >= 1200000000U)
+		band = "23cm/1.2GHz";
+	else if (m_txFrequency >= 420000000U)
+		band = "70cm";
+	else if (m_txFrequency >= 144000000U)
+		band = "2m";
+	else if (m_txFrequency >= 50000000U)
+		band = "6m";
+	else if (m_txFrequency >= 28000000U)
+		band = "10m";
 
 	double tempLat  = ::fabs(rawLatitude);
 	double tempLong = ::fabs(rawLongitude);
@@ -382,7 +380,7 @@ void CAPRSWriter::sendIdFrameMobile()
 		server.append("S");
 
         if (symbol.empty())
-                symbol.append("Wi");
+                symbol.append("D&");
 
 	char output[500U];
 	::sprintf(output, "%s>APDG03,TCPIP*,qAC,%s:!%s%c%c%s%c%c",

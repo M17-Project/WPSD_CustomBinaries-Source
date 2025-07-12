@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2023 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015-2023,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -96,7 +96,6 @@ public:
   float        getModemYSFTXLevel() const;
   float        getModemP25TXLevel() const;
   float        getModemNXDNTXLevel() const;
-  float        getModemM17TXLevel() const;
   float        getModemPOCSAGTXLevel() const;
   float        getModemFMTXLevel() const;
   float        getModemAX25TXLevel() const;
@@ -120,7 +119,7 @@ public:
   std::vector<std::string> getDStarWhiteList() const;
   bool         getDStarAckReply() const;
   unsigned int getDStarAckTime() const;
-  DSTAR_ACK_MESSAGE getDStarAckMessage() const;
+  DSTAR_ACK    getDStarAckMessage() const;
   bool         getDStarErrorReply() const;
   bool         getDStarRemoteGateway() const;
   unsigned int getDStarModeHang() const;
@@ -143,7 +142,7 @@ public:
   unsigned int getDMRCallHang() const;
   unsigned int getDMRTXHang() const;
   unsigned int getDMRModeHang() const;
-  DMR_OVCM_TYPES getDMROVCM() const;
+  DMR_OVCM     getDMROVCM() const;
   bool         getDMRProtect() const;
 
   // The System Fusion section
@@ -172,14 +171,6 @@ public:
   bool         getNXDNRemoteGateway() const;
   unsigned int getNXDNTXHang() const;
   unsigned int getNXDNModeHang() const;
-
-  // The M17 section
-  bool         getM17Enabled() const;
-  unsigned int getM17CAN() const;
-  bool         getM17SelfOnly() const;
-  bool         getM17AllowEncryption() const;
-  unsigned int getM17TXHang() const;
-  unsigned int getM17ModeHang() const;
 
   // The POCSAG section
   bool         getPOCSAGEnabled() const;
@@ -282,15 +273,6 @@ public:
   unsigned short getNXDNLocalPort() const;
   unsigned int getNXDNNetworkModeHang() const;
   bool         getNXDNNetworkDebug() const;
-
-  // The M17 Network section
-  bool         getM17NetworkEnabled() const;
-  std::string  getM17GatewayAddress() const;
-  unsigned short getM17GatewayPort() const;
-  std::string  getM17LocalAddress() const;
-  unsigned short getM17LocalPort() const;
-  unsigned int getM17NetworkModeHang() const;
-  bool         getM17NetworkDebug() const;
 
   // The POCSAG Network section
   bool         getPOCSAGNetworkEnabled() const;
@@ -437,7 +419,6 @@ private:
   float        m_modemYSFTXLevel;
   float        m_modemP25TXLevel;
   float        m_modemNXDNTXLevel;
-  float        m_modemM17TXLevel;
   float        m_modemPOCSAGTXLevel;
   float        m_modemFMTXLevel;
   float        m_modemAX25TXLevel;
@@ -459,7 +440,7 @@ private:
   std::vector<std::string> m_dstarWhiteList;
   bool         m_dstarAckReply;
   unsigned int m_dstarAckTime;
-  DSTAR_ACK_MESSAGE      m_dstarAckMessage;
+  DSTAR_ACK    m_dstarAckMessage;
   bool         m_dstarErrorReply;
   bool         m_dstarRemoteGateway;
   unsigned int m_dstarModeHang;
@@ -481,7 +462,7 @@ private:
   unsigned int m_dmrCallHang;
   unsigned int m_dmrTXHang;
   unsigned int m_dmrModeHang;
-  DMR_OVCM_TYPES m_dmrOVCM;
+  DMR_OVCM     m_dmrOVCM;
   bool         m_dmrProtect;
 
   bool          m_fusionEnabled;
@@ -507,13 +488,6 @@ private:
   bool         m_nxdnRemoteGateway;
   unsigned int m_nxdnTXHang;
   unsigned int m_nxdnModeHang;
-
-  bool         m_m17Enabled;
-  unsigned int m_m17CAN;
-  bool         m_m17SelfOnly;
-  bool         m_m17AllowEncryption;
-  unsigned int m_m17TXHang;
-  unsigned int m_m17ModeHang;
 
   bool         m_pocsagEnabled;
   unsigned int m_pocsagFrequency;
@@ -608,14 +582,6 @@ private:
   unsigned short m_nxdnLocalPort;
   unsigned int m_nxdnNetworkModeHang;
   bool         m_nxdnNetworkDebug;
-
-  bool         m_m17NetworkEnabled;
-  std::string  m_m17GatewayAddress;
-  unsigned short m_m17GatewayPort;
-  std::string  m_m17LocalAddress;
-  unsigned short m_m17LocalPort;
-  unsigned int m_m17NetworkModeHang;
-  bool         m_m17NetworkDebug;
 
   bool         m_pocsagNetworkEnabled;
   std::string  m_pocsagGatewayAddress;

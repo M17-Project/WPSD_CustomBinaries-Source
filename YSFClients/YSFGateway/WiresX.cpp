@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2019,2020 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2019,2020,2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@
 #include <cstdio>
 #include <cassert>
 #include <cstdlib>
+#include <cctype>
 
-const unsigned char DX_REQ[]    = {0x5DU, 0x71U, 0x5FU};
+const unsigned char DX_REQ[]    = {0x5DU, 0x71U, 0x5FU}; // Followed by 2B (FT-70D) 29 (FTM-100D) 28 (FT2D)
 const unsigned char CONN_REQ[]  = {0x5DU, 0x23U, 0x5FU};
 const unsigned char DISC_REQ[]  = {0x5DU, 0x2AU, 0x5FU};
 const unsigned char ALL_REQ[]   = {0x5DU, 0x66U, 0x5FU};
@@ -48,26 +49,26 @@ m_callsign(callsign),
 m_node(),
 m_network(network),
 m_reflectors(reflectors),
-m_reflector(NULL),
+m_reflector(nullptr),
 m_id(),
 m_name(),
-m_command(NULL),
+m_command(nullptr),
 m_txFrequency(0U),
 m_rxFrequency(0U),
 m_timer(1000U, 1U),
 m_seqNo(0U),
-m_header(NULL),
-m_csd1(NULL),
-m_csd2(NULL),
-m_csd3(NULL),
-m_status(WXSI_NONE),
+m_header(nullptr),
+m_csd1(nullptr),
+m_csd2(nullptr),
+m_csd3(nullptr),
+m_status(WXSI_STATUS::NONE),
 m_start(0U),
 m_search(),
 m_busy(false),
 m_busyTimer(3000U, 1U),
 m_bufferTX(10000U, "YSF Wires-X TX Buffer")
 {
-	assert(network != NULL);
+	assert(network != nullptr);
 
 	m_node = callsign;
 	if (suffix.size() > 0U) {
@@ -187,35 +188,35 @@ bool CWiresX::start()
 
 WX_STATUS CWiresX::process(const unsigned char* data, const unsigned char* source, const CYSFFICH& fich, bool wiresXCommandPassthrough)
 {
-	assert(data != NULL);
-	assert(source != NULL);
+	assert(data != nullptr);
+	assert(source != nullptr);
 
 	unsigned char dt = fich.getDT();
 	if (dt != YSF_DT_DATA_FR_MODE)
-		return WXS_NONE;
+		return WX_STATUS::NONE;
 
 	unsigned char fi = fich.getFI();
 	if (fi != YSF_FI_COMMUNICATIONS)
-		return WXS_NONE;
+		return WX_STATUS::NONE;
 
 	CYSFPayload payload;
 
 	unsigned char fn = fich.getFN();
 	if (fn == 0U)
-		return WXS_NONE;
+		return WX_STATUS::NONE;
 
 	if (fn == 1U) {
 		bool valid = payload.readDataFRModeData2(data, m_command + 0U);
 		if (!valid)
-			return WXS_NONE;
+			return WX_STATUS::NONE;
 	} else {
 		bool valid = payload.readDataFRModeData1(data, m_command + (fn - 2U) * 40U + 20U);
 		if (!valid)
-			return WXS_NONE;
+			return WX_STATUS::NONE;
 
 		valid = payload.readDataFRModeData2(data, m_command + (fn - 2U) * 40U + 40U);
 		if (!valid)
-			return WXS_NONE;
+			return WX_STATUS::NONE;
 	}
 
 	unsigned char ft = fich.getFT();
@@ -234,52 +235,52 @@ WX_STATUS CWiresX::process(const unsigned char* data, const unsigned char* sourc
 		}
 
 		if (!valid)
-			return WXS_NONE;
+			return WX_STATUS::NONE;
 
 		CUtils::dump(1U, "Received Wires-X command", m_command, cmd_len);
 
-		// If we are using WiresX Passthrough (we already know we are on a YSF2xxx room from YSFGateway
+		// YSFGateway.cpp is telling us to pass the command to the network, so do not process locally unless it's a disconnect
 		if (wiresXCommandPassthrough) {
 			if (::memcmp(m_command + 1U, DX_REQ, 3U) == 0) {
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else if (::memcmp(m_command + 1U, ALL_REQ, 3U) == 0) {
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else if (::memcmp(m_command + 1U, CONN_REQ, 3U) == 0) {
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else if (::memcmp(m_command + 1U, DISC_REQ, 3U) == 0) {
 				processDisconnect(source);
-				return WXS_DISCONNECT;
+				return WX_STATUS::DISCONNECT;
 			} else if (::memcmp(m_command + 1U, CAT_REQ, 3U) == 0) {
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else {
 				CUtils::dump("Unknown Wires-X command", m_command, cmd_len);
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			}
 		}
 		// Origional Code Here
 		else {
 			if (::memcmp(m_command + 1U, DX_REQ, 3U) == 0) {
 				processDX(source);
-				return WXS_NONE;
+				return WX_STATUS::RECONNECT_CURRENT;
 			} else if (::memcmp(m_command + 1U, ALL_REQ, 3U) == 0) {
 				processAll(source, m_command + 5U);
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else if (::memcmp(m_command + 1U, CONN_REQ, 3U) == 0) {
 				return processConnect(source, m_command + 5U);
 			} else if (::memcmp(m_command + 1U, DISC_REQ, 3U) == 0) {
 				processDisconnect(source);
-				return WXS_DISCONNECT;
+				return WX_STATUS::DISCONNECT;
 			} else if (::memcmp(m_command + 1U, CAT_REQ, 3U) == 0) {
 				processCategory(source, m_command + 5U);
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			} else {
 				CUtils::dump("Unknown Wires-X command", m_command, cmd_len);
-				return WXS_NONE;
+				return WX_STATUS::NONE;
 			}
 		}
 	}
 
-	return WXS_NONE;
+	return WX_STATUS::NONE;
 }
 
 CYSFReflector* CWiresX::getReflector() const
@@ -296,7 +297,7 @@ void CWiresX::processDX(const unsigned char* source)
 {
 	::LogDebug("Received DX from %10.10s", source);
 
-	m_status = WXSI_DX;
+	m_status = WXSI_STATUS::DX;
 	m_timer.start();
 }
 
@@ -329,7 +330,7 @@ void CWiresX::processCategory(const unsigned char* source, const unsigned char* 
 			m_category.push_back(refl);
 	}
 
-	m_status = WXSI_CATEGORY;
+	m_status = WXSI_STATUS::CATEGORY;
 	m_timer.start();
 }
 
@@ -346,7 +347,7 @@ void CWiresX::processAll(const unsigned char* source, const unsigned char* data)
 		if (m_start > 0U)
 			m_start--;
 
-		m_status = WXSI_ALL;
+		m_status = WXSI_STATUS::ALL;
 
 		m_timer.start();
 	} else if (data[0U] == '1' && data[1U] == '1') {
@@ -358,7 +359,7 @@ void CWiresX::processAll(const unsigned char* source, const unsigned char* data)
 
 		m_search = std::string((char*)(data + 5U), 16U);
 
-		m_status = WXSI_SEARCH;
+		m_status = WXSI_STATUS::SEARCH;
 
 		m_timer.start();
 	}
@@ -374,19 +375,24 @@ WX_STATUS CWiresX::processConnect(const unsigned char* source, const unsigned ch
 	std::string id = std::string((char*)data, 5U);
 
 	m_reflector = m_reflectors.findById(id);
-	if (m_reflector == NULL)
-		return WXS_NONE;
+	if (m_reflector == nullptr) {
+		if(source != nullptr)
+			processDisconnect(source);
+		sendConnectFailedReply();
+		// Keep state on Radio matched with YSFGateway
+		return WX_STATUS::DISCONNECT;
+	}
 
-	m_status = WXSI_CONNECT;
+	m_status = WXSI_STATUS::CONNECT;
 	m_timer.start();
 
 	switch (m_reflector->m_type) {
-	case YT_YSF:
-		return WXS_CONNECT_YSF;
-	case YT_FCS:
-		return WXS_CONNECT_FCS;
+	case YSF_TYPE::YSF:
+		return WX_STATUS::CONNECT_YSF;
+	case YSF_TYPE::FCS:
+		return WX_STATUS::CONNECT_FCS;
 	default:
-		return WXS_NONE;
+		return WX_STATUS::NONE;
 	}
 }
 
@@ -397,18 +403,18 @@ void CWiresX::processConnect(CYSFReflector* reflector)
 
 	m_reflector = reflector;
 
-	m_status = WXSI_CONNECT;
+	m_status = WXSI_STATUS::CONNECT;
 	m_timer.start();
 }
 
 void CWiresX::processDisconnect(const unsigned char* source)
 {
-	if (source != NULL)
+	if (source != nullptr)
 		::LogDebug("Received Disconect from %10.10s", source);
 
-	m_reflector = NULL;
+	m_reflector = nullptr;
 
-	m_status = WXSI_DISCONNECT;
+	m_status = WXSI_STATUS::DISCONNECT;
 	m_timer.start();
 }
 
@@ -421,29 +427,29 @@ void CWiresX::clock(unsigned int ms)
 	m_timer.clock(ms);
 	if (m_timer.isRunning() && m_timer.hasExpired()) {
 		switch (m_status) {
-		case WXSI_DX:
+		case WXSI_STATUS::DX:
 			sendDXReply();
 			break;
-		case WXSI_ALL:
+		case WXSI_STATUS::ALL:
 			sendAllReply();
 			break;
-		case WXSI_SEARCH:
+		case WXSI_STATUS::SEARCH:
 			sendSearchReply();
 			break;
-		case WXSI_CONNECT:
+		case WXSI_STATUS::CONNECT:
 			sendConnectReply();
 			break;
-		case WXSI_DISCONNECT:
+		case WXSI_STATUS::DISCONNECT:
 			sendDisconnectReply();
 			break;
-		case WXSI_CATEGORY:
+		case WXSI_STATUS::CATEGORY:
 			sendCategoryReply();
 			break;
 		default:
 			break;
 		}
 
-		m_status = WXSI_NONE;
+		m_status = WXSI_STATUS::NONE;
 		m_timer.stop();
 	}
 
@@ -468,14 +474,14 @@ void CWiresX::clock(unsigned int ms)
 
 void CWiresX::createReply(const unsigned char* data, unsigned int length, CYSFNetwork* network)
 {
-	assert(data != NULL);
+	assert(data != nullptr);
 	assert(length > 0U);
 
-	bool isYSF2XX = true;
+	bool sendWiresXtoNetwork = true;
 
 	// If we don't explicitly pass a network, use the default one.
-	if (network == NULL) {
-		isYSF2XX = false;
+	if (network == nullptr) {
+		sendWiresXtoNetwork = false;
 		network = m_network;
 	}
 
@@ -520,7 +526,7 @@ void CWiresX::createReply(const unsigned char* data, unsigned int length, CYSFNe
 	buffer[34U] = seqNo;
 	seqNo += 2U;
 
-	writeData(buffer, network, isYSF2XX);
+	writeData(buffer, network, sendWiresXtoNetwork);
 
 	fich.setFI(YSF_FI_COMMUNICATIONS);
 
@@ -567,7 +573,7 @@ void CWiresX::createReply(const unsigned char* data, unsigned int length, CYSFNe
 		buffer[34U] = seqNo;
 		seqNo += 2U;
 
-		writeData(buffer, network, isYSF2XX);
+		writeData(buffer, network, sendWiresXtoNetwork);
 
 		fn++;
 		if (fn >= 8U) {
@@ -587,13 +593,13 @@ void CWiresX::createReply(const unsigned char* data, unsigned int length, CYSFNe
 
 	buffer[34U] = seqNo | 0x01U;
 
-	writeData(buffer, network, isYSF2XX);
+	writeData(buffer, network, sendWiresXtoNetwork);
 }
 
-void CWiresX::writeData(const unsigned char* buffer, CYSFNetwork* network, bool isYSF2XX)
+void CWiresX::writeData(const unsigned char* buffer, CYSFNetwork* network, bool sendWiresXtoNetwork)
 {
-	if (isYSF2XX) {
-		// Send YSF2XXX Wires-X reply directly to the network
+	if (sendWiresXtoNetwork) {
+		// Send WiresX directly to the network
 		network->write(buffer);
 	} else {
 		// Send host Wires-X reply using ring buffer
@@ -642,22 +648,22 @@ void CWiresX::sendDXReply()
 	for (unsigned int i = 0U; i < 14U; i++)
 		data[i + 20U] = m_name.at(i);
 
-	if (m_reflector == NULL) {
-		data[34U] = '1';
-		data[35U] = '2';
+	if (m_reflector == nullptr) {
+		data[34U] = '1'; // 0,1,2 seem Valid
+		data[35U] = '2'; // 0 = Offline 1 = Busy 2 = Disconnect 3 = Normal
 
 		data[57U] = '0';
 		data[58U] = '0';
 		data[59U] = '0';
 	} else {
-		data[34U] = '1';
-		data[35U] = '5';
+		data[34U] = '1'; // 0,1,2 seem Valid
+		data[35U] = '3'; // 0 = Offline 1 = Busy 2 = Disconnect 3 = Normal
 
 		for (unsigned int i = 0U; i < 5U; i++)
 			data[i + 36U] = m_reflector->m_id.at(i);
 
 		for (unsigned int i = 0U; i < 16U; i++)
-			data[i + 41U] = m_reflector->m_name.at(i);
+			data[i + 41U] = std::toupper(m_reflector->m_name.at(i));
 
 		for (unsigned int i = 0U; i < 3U; i++)
 			data[i + 57U] = m_reflector->m_count.at(i);
@@ -718,7 +724,7 @@ void CWiresX::sendConnect(CYSFNetwork* network)
 
 void CWiresX::sendConnectReply()
 {
-	assert(m_reflector != NULL);
+	assert(m_reflector != nullptr);
 
 	unsigned char data[110U];
 	::memset(data, 0x00U, 110U);
@@ -738,14 +744,14 @@ void CWiresX::sendConnectReply()
 	for (unsigned int i = 0U; i < 14U; i++)
 		data[i + 20U] = m_name.at(i);
 
-	data[34U] = '1';
-	data[35U] = '5';
+	data[34U] = '1'; // 0,1,2 seem Valid
+	data[35U] = '3'; // 0 = Offline 1 = Busy 2 = Disconnect 3 = Normal
 
 	for (unsigned int i = 0U; i < 5U; i++)
-		data[i + 36U] = m_reflector->m_id.at(i);
+	data[i + 36U] = m_reflector->m_id.at(i);
 
 	for (unsigned int i = 0U; i < 16U; i++)
-		data[i + 41U] = m_reflector->m_name.at(i);
+		data[i + 41U] = std::toupper(m_reflector->m_name.at(i));
 
 	for (unsigned int i = 0U; i < 3U; i++)
 		data[i + 57U] = m_reflector->m_count.at(i);
@@ -763,6 +769,43 @@ void CWiresX::sendConnectReply()
 	data[90U] = CCRC::addCRC(data, 90U);
 
 	CUtils::dump(1U, "CONNECT Reply", data, 91U);
+
+	createReply(data, 91U);
+
+	m_seqNo++;
+}
+
+void CWiresX::sendConnectFailedReply()
+{
+	unsigned char data[110U];
+	::memset(data, 0x00U, 110U);
+	::memset(data, ' ', 90U);
+
+	data[0U] = m_seqNo;
+
+	for (unsigned int i = 0U; i < 4U; i++)
+		data[i + 1U] = CONN_RESP[i];
+
+	for (unsigned int i = 0U; i < 5U; i++)
+		data[i + 5U] = m_id.at(i);
+
+	for (unsigned int i = 0U; i < 10U; i++)
+		data[i + 10U] = m_node.at(i);
+
+	for (unsigned int i = 0U; i < 14U; i++)
+		data[i + 20U] = m_name.at(i);
+
+	data[34U] = '1'; // 0,1,2 seem Valid
+	data[35U] = '0'; // 0 = Offline 1 = Busy 2 = Disconnect 3 = Normal
+
+	data[57U] = '0';
+	data[58U] = '0';
+	data[59U] = '0';
+
+	data[89U] = 0x03U;			// End of data marker
+	data[90U] = CCRC::addCRC(data, 90U);
+
+	CUtils::dump(1U, "Connect Failed Reply", data, 91U);
 
 	createReply(data, 91U);
 
@@ -789,8 +832,8 @@ void CWiresX::sendDisconnectReply()
 	for (unsigned int i = 0U; i < 14U; i++)
 		data[i + 20U] = m_name.at(i);
 
-	data[34U] = '1';
-	data[35U] = '2';
+	data[34U] = '1'; // 0,1,2 seem Valid
+	data[35U] = '2'; // 0 = Offline 1 = Busy 2 = Disconnect 3 = Normal
 
 	data[57U] = '0';
 	data[58U] = '0';
@@ -830,13 +873,13 @@ void CWiresX::sendAllReply()
 	for (unsigned int i = 0U; i < 10U; i++)
 		data[i + 12U] = m_node.at(i);
 
-	unsigned int total = curr.size();
+	unsigned int total = (unsigned int)curr.size();
 	if (total > 999U) total = 999U;
 
-	unsigned int n = curr.size() - m_start;
+	unsigned int n = (unsigned int)curr.size() - m_start;
 	if (n > 20U) n = 20U;
 
-	::sprintf((char*)(data + 22U), "%03u%03u", n, total);
+	::sprintf((char*)(data + 22U), "%03u%03u", 20U, total);
 
 	data[28U] = 0x0DU;
 
@@ -852,7 +895,7 @@ void CWiresX::sendAllReply()
 			data[i + offset + 1U] = refl->m_id.at(i);
 
 		for (unsigned int i = 0U; i < 16U; i++)
-			data[i + offset + 6U] = refl->m_name.at(i);
+			data[i + offset + 6U] = std::toupper(refl->m_name.at(i));
 
 		for (unsigned int i = 0U; i < 3U; i++)
 			data[i + offset + 22U] = refl->m_count.at(i);
@@ -868,7 +911,16 @@ void CWiresX::sendAllReply()
 
 	unsigned int k = 1029U - offset;
 	for(unsigned int i = 0U; i < k; i++)
-		data[i + offset] = 0x20U;
+	{
+		if (i % 50U == 49 && i>0)
+		{
+			data[i + offset] = 0x0DU;
+		}
+		else
+		{
+			data[i + offset] = 0x20U;
+		}
+	}
 
 	offset += k;
 
@@ -914,13 +966,13 @@ void CWiresX::sendSearchReply()
 
 	data[22U] = '1';
 
-	unsigned int total = search.size();
+	unsigned int total = (unsigned int)search.size();
 	if (total > 999U) total = 999U;
 
-	unsigned int n = search.size() - m_start;
+	unsigned int n = (unsigned int)search.size() - m_start;
 	if (n > 20U) n = 20U;
 
-	::sprintf((char*)(data + 23U), "%02u%03u", n, total);
+	::sprintf((char*)(data + 23U), "%02u%03u", 20U, total);
 
 	data[28U] = 0x0DU;
 
@@ -936,7 +988,7 @@ void CWiresX::sendSearchReply()
 			data[i + offset + 1U] = refl->m_id.at(i);
 
 		for (unsigned int i = 0U; i < 16U; i++)
-			data[i + offset + 6U] = refl->m_name.at(i);
+			data[i + offset + 6U] = std::toupper(refl->m_name.at(i));
 
 		for (unsigned int i = 0U; i < 3U; i++)
 			data[i + offset + 22U] = refl->m_count.at(i);
@@ -951,8 +1003,12 @@ void CWiresX::sendSearchReply()
 	}
 
 	unsigned int k = 1029U - offset;
-	for(unsigned int i = 0U; i < k; i++)
-		data[i + offset] = 0x20U;
+	for (unsigned int i = 0U; i < k; i++) {
+		if (((i % 50U) == 49U) && (i > 0U))
+			data[i + offset] = 0x0DU;
+		else
+			data[i + offset] = 0x20U;
+	}
 
 	offset += k;
 
@@ -1023,11 +1079,11 @@ void CWiresX::sendCategoryReply()
 	for (unsigned int i = 0U; i < 10U; i++)
 		data[i + 12U] = m_node.at(i);
 
-	unsigned int n = m_category.size();
+	unsigned int n = (unsigned int)m_category.size();
 	if (n > 20U)
 		n = 20U;
 
-	::sprintf((char*)(data + 22U), "%03u%03u", n, n);
+	::sprintf((char*)(data + 22U), "%03u%03u", 20U, n);
 
 	data[28U] = 0x0DU;
 
@@ -1043,7 +1099,7 @@ void CWiresX::sendCategoryReply()
 			data[i + offset + 1U] = refl->m_id.at(i);
 
 		for (unsigned int i = 0U; i < 16U; i++)
-			data[i + offset + 6U] = refl->m_name.at(i);
+			data[i + offset + 6U] = std::toupper(refl->m_name.at(i));
 
 		for (unsigned int i = 0U; i < 3U; i++)
 			data[i + offset + 22U] = refl->m_count.at(i);
@@ -1058,8 +1114,12 @@ void CWiresX::sendCategoryReply()
 	}
 
 	unsigned int k = 1029U - offset;
-	for(unsigned int i = 0U; i < k; i++)
-		data[i + offset] = 0x20U;
+	for (unsigned int i = 0U; i < k; i++) {
+		if (((i % 50U) == 49U) && (i > 0U))
+			data[i + offset] = 0x0DU;
+		else
+			data[i + offset] = 0x20U;
+	}
 
 	offset += k;
 

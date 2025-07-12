@@ -51,18 +51,18 @@ bool CI2CController::open()
 
 	m_fd = ::open(m_device.c_str(), O_RDWR);
 	if (m_fd < 0) {
-		LogDebug("Cannot open device - %s", m_device.c_str());
+		LogError("Cannot open device - %s", m_device.c_str());
 		return false;
 	}
 
 	if (::ioctl(m_fd, I2C_TENBIT, 0) < 0) {
-		LogDebug("I2C: failed to set 7bitaddress");
+		LogError("I2C: failed to set 7bitaddress");
 		::close(m_fd);
 		return false;
 	}
 
 	if (::ioctl(m_fd, I2C_SLAVE, m_address) < 0) {
-		LogDebug("I2C: Failed to acquire bus access/talk to slave 0x%02X", m_address);
+		LogError("I2C: Failed to acquire bus access/talk to slave 0x%02X", m_address);
 		::close(m_fd);
 		return false;
 	}
@@ -84,7 +84,7 @@ int CI2CController::read(unsigned char* buffer, unsigned int length)
 		ssize_t n = ::read(m_fd, buffer + offset, 1U);
 		if (n < 0) {
 			if (errno != EAGAIN) {
-				LogDebug("Error returned from read(), errno=%d", errno);
+				LogError("Error returned from read(), errno=%d", errno);
 				return -1;
 			}
 		}
@@ -109,7 +109,7 @@ int CI2CController::write(const unsigned char* buffer, unsigned int length)
 		ssize_t n = ::write(m_fd, buffer + ptr, 1U);
 		if (n < 0) {
 			if (errno != EAGAIN) {
-				LogDebug("Error returned from write(), errno=%d", errno);
+				LogError("Error returned from write(), errno=%d", errno);
 				return -1;
 			}
 		}

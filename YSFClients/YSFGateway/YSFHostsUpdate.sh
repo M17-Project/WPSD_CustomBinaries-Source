@@ -2,10 +2,7 @@
 
 ###############################################################################
 #
-# M17Hostspdate.sh
-#
-# Copyright (C) 2020 by Jonathan Naylor G4KLX
-# Copyright (C) 2016 by Tony Corbett G0WFV
+# Copyright (C) 2025 by Jonathan Naylor G4KLX
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,33 +20,9 @@
 #
 ###############################################################################
 #
-# On a Linux based system, such as a Raspberry Pi, this script will perform all 
-# the steps required to maintain the M17Hosts.txt (or similar) file for you.
+# Full path to the YSFHosts hosts file
 #
-# It is designed to run from crontab and will download the latest hosts file.
-#
-# The gateway will refresh its hosts files at regular intervals as specified in the
-# gateway ini file.
-#
-# To install in root's crontab use the command ...
-#
-#     sudo crontab -e
-#
-# ... and add the following line to the bottom of the file ...
-#
-#     0  0  *  *  *  /path/to/script/M17HostsUpdate.sh 1>/dev/null 2>&1
-#
-# ... where /path/to/script/ should be replaced by the path to this script.
-#
-###############################################################################
-#
-#                              CONFIGURATION
-#
-# Full path to the M17 hosts file, without final slash
-M17HOSTSPATH=/path/to/M17/hosts/file
-M17HOSTSFILE=${M17HOSTSPATH}/M17Hosts.txt
-
-DATABASEURL='http://www.dudetronics.com/ar-dns/M17Hosts.txt'
+YSFHOSTS=/path/to/YSFHosts.txt
 
 ###############################################################################
 #
@@ -64,6 +37,7 @@ then
 	exit 1
 fi
 
-# Get new file
-curl ${DATABASEURL} 2>/dev/null > ${M17HOSTSFILE}
+# Download the YSFHosts.txt file
+curl https://dvref.com/downloads/YSFHosts-resolved.txt > ${YSFHOSTS}
 
+exit 0

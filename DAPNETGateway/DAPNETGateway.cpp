@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2018,2020 by Jonathan Naylor G4KLX
+*   Copyright (C) 2018,2020,2024,2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@
 #include "Thread.h"
 #include "Timer.h"
 #include "Log.h"
+#include "GitVersion.h"
+
 #include "REGEX.h"
 #include <regex>
-#include "GitVersion.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
@@ -40,6 +41,17 @@
 const char* DEFAULT_INI_FILE = "DAPNETGateway.ini";
 #else
 const char* DEFAULT_INI_FILE = "/etc/DAPNETGateway.ini";
+#endif
+
+static bool m_killed = false;
+static int  m_signal = 0;
+
+#if !defined(_WIN32) && !defined(_WIN64)
+static void sigHandler(int signum)
+{
+	m_killed = true;
+	m_signal = signum;
+}
 #endif
 
 #include <algorithm>
@@ -92,22 +104,53 @@ int main(int argc, char** argv)
 		}
 	}
 
-	CDAPNETGateway* gateway = new CDAPNETGateway(std::string(iniFile));
+#if !defined(_WIN32) && !defined(_WIN64)
+	::signal(SIGINT,  sigHandler);
+	::signal(SIGTERM, sigHandler);
+	::signal(SIGHUP,  sigHandler);
+#endif
 
-	int ret = gateway->run();
+	int ret = 0;
 
-	delete gateway;
+	do {
+		m_signal = 0;
+		m_killed = false;
+
+		CDAPNETGateway* gateway = new CDAPNETGateway(std::string(iniFile));
+		ret = gateway->run();
+
+		delete gateway;
+
+		switch (m_signal) {
+			case 0:
+				break;
+			case 2:
+				::LogInfo("DAPNETGateway-%s exited on receipt of SIGINT", VERSION);
+				break;
+			case 15:
+				::LogInfo("DAPNETGateway-%s exited on receipt of SIGTERM", VERSION);
+				break;
+			case 1:
+				::LogInfo("DAPNETGateway-%s is restarting on receipt of SIGHUP", VERSION);
+				break;
+			default:
+				::LogInfo("DAPNETGateway-%s exited on receipt of an unknown signal", VERSION);
+				break;
+		}
+	} while (m_signal == 1);
+
+	::LogFinalise();
 
 	return ret;
 }
 
 CDAPNETGateway::CDAPNETGateway(const std::string& configFile) :
 m_conf(configFile),
-m_dapnetNetwork(NULL),
-m_pocsagNetwork(NULL),
+m_dapnetNetwork(nullptr),
+m_pocsagNetwork(nullptr),
 m_queue(),
 m_slotTimer(),
-m_schedule(NULL),
+m_schedule(nullptr),
 m_allSlots(false),
 m_currentSlot(0U),
 m_sentCodewords(0U),
@@ -145,7 +188,7 @@ int CDAPNETGateway::run()
 		pid_t pid = ::fork();
 		if (pid == -1) {
 			::fprintf(stderr, "Couldn't fork() , exiting\n");
-			return -1;
+			return 1;
 		} else if (pid != 0) {
 			exit(EXIT_SUCCESS);
 		}
@@ -153,21 +196,21 @@ int CDAPNETGateway::run()
 		// Create new session and process group
 		if (::setsid() == -1) {
 			::fprintf(stderr, "Couldn't setsid(), exiting\n");
-			return -1;
+			return 1;
 		}
 
 		// Set the working directory to the root directory
 		if (::chdir("/") == -1) {
 			::fprintf(stderr, "Couldn't cd /, exiting\n");
-			return -1;
+			return 1;
 		}
 
 		// If we are currently root...
 		if (getuid() == 0) {
 			struct passwd* user = ::getpwnam("mmdvm");
-			if (user == NULL) {
+			if (user == nullptr) {
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
-				return -1;
+				return 1;
 			}
 
 			uid_t mmdvm_uid = user->pw_uid;
@@ -176,18 +219,18 @@ int CDAPNETGateway::run()
 			// Set user and group ID's to mmdvm:mmdvm
 			if (setgid(mmdvm_gid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm GID, exiting\n");
-				return -1;
+				return 1;
 			}
 
 			if (setuid(mmdvm_uid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm UID, exiting\n");
-				return -1;
+				return 1;
 			}
 
 			// Double check it worked (AKA Paranoia) 
 			if (setuid(0) != -1) {
 				::fprintf(stderr, "It's possible to regain root - something is wrong!, exiting\n");
-				return -1;
+				return 1;
 			}
 		}
 	}
@@ -222,8 +265,6 @@ int CDAPNETGateway::run()
 	ret = m_pocsagNetwork->open();
 	if (!ret) {
 		::LogError("Cannot open the repeater network port");
-		::LogFinalise();
-
 		return 1;
 	}
 
@@ -234,8 +275,6 @@ int CDAPNETGateway::run()
 
 	if (dapnetAuthKey.length() == 0 || dapnetAuthKey == "TOPSECRET") {
 		::LogError("AuthKey not set or invalid");
-		::LogFinalise();
-		
 		return 1;
 	}
 		
@@ -247,13 +286,11 @@ int CDAPNETGateway::run()
 		delete m_dapnetNetwork;
 
 		::LogError("Cannot open the DAPNET network port");
-		::LogFinalise();
 
 		return 1;
 	}
 
-	LogMessage("DAPNETGateway-%s is starting", VERSION);
- 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
+	LogMessage("Starting DAPNETGateway-%s", VERSION);
 
 	ret = m_dapnetNetwork->login();
 	if (!ret) {
@@ -263,7 +300,6 @@ int CDAPNETGateway::run()
 		delete m_dapnetNetwork;
 
 		::LogError("Cannot login to the DAPNET network");
-		::LogFinalise();
 
 		return 1;
 	}
@@ -285,7 +321,7 @@ int CDAPNETGateway::run()
 		regexWhitelist = m_regexWhitelist->get();
 
 
-	for (;;) {
+	while (!m_killed) {
 		unsigned char buffer[200U];
 
 		if (m_pocsagNetwork->read(buffer) > 0U) {
@@ -315,7 +351,7 @@ int CDAPNETGateway::run()
 			recover();
 
 		CPOCSAGMessage* message = m_dapnetNetwork->readMessage();
-		if (message != NULL) {
+		if (message != nullptr) {
 			bool found = true;
 			bool blackListRIC = false;
 			bool blacklistRegexmatch = false;
@@ -383,7 +419,7 @@ int CDAPNETGateway::run()
 		if (slot != m_currentSlot) {
 			// LogDebug("Start of slot %u", slot);
 			m_currentSlot = slot;
-			if (m_schedule == NULL || m_currentSlot == 0U)
+			if (m_schedule == nullptr || m_currentSlot == 0U)
 				loadSchedule();
 			m_sentCodewords = 0U;
 			m_slotTimer.start();
@@ -400,8 +436,6 @@ int CDAPNETGateway::run()
 	m_dapnetNetwork->close();
 	delete m_dapnetNetwork;
 
-	::LogFinalise();
-
 	return 0;
 }
 
@@ -412,7 +446,7 @@ void CDAPNETGateway::sendMessages()
 		return;
 
 	// Do we have a schedule?
-	if (m_schedule == NULL)
+	if (m_schedule == nullptr)
 		return;
 
 	// Check to see if we're allowed to send within a slot.
@@ -424,7 +458,7 @@ void CDAPNETGateway::sendMessages()
 		return;
 
 	CPOCSAGMessage* message = m_queue.back();
-	assert(message != NULL);
+	assert(message != nullptr);
 
 	// Special case, only test if slots are being used.
 	if (m_allSlots) {
@@ -488,7 +522,7 @@ bool CDAPNETGateway::isTimeMessage(const CPOCSAGMessage* message) const
 
 unsigned int CDAPNETGateway::calculateCodewords(const CPOCSAGMessage* message) const
 {
-	assert(message != NULL);
+	assert(message != nullptr);
 
 	unsigned int len = 0U;
 	switch (message->m_functional) {
@@ -517,7 +551,7 @@ unsigned int CDAPNETGateway::calculateCodewords(const CPOCSAGMessage* message) c
 void CDAPNETGateway::loadSchedule()
 {
 	bool* schedule = m_dapnetNetwork->readSchedule();
-	if (schedule == NULL)
+	if (schedule == nullptr)
 		return;
 
 	delete[] m_schedule;
@@ -543,7 +577,7 @@ void CDAPNETGateway::loadSchedule()
 
 bool CDAPNETGateway::sendMessage(CPOCSAGMessage* message) const
 {
-	assert(message != NULL);
+	assert(message != nullptr);
 
 	bool ret = isTimeMessage(message);
 	if (ret && message->m_timeQueued.elapsed() >= MAX_TIME_TO_HOLD_TIME_MESSAGES) {
