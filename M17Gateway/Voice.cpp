@@ -154,15 +154,19 @@ void CVoice::linkedTo(const std::string& reflector)
 	std::string name = reflector;
 
 	std::string::const_iterator it = name.cbegin();
-	while (it != name.cend()) {
-		if (*it == ' ') {
-			++it;
-			break;
-		}
 
-		words.push_back(std::string(1U, *it));
-		++it;
+	while (it != name.cend()) {
+            if (*it == ' ') {
+                while (it != name.cend() && *it == ' ') {
+                    ++it;
+                }
+                break;
+            }
+
+            words.push_back(std::string(1U, *it));
+	    ++it;
 	}
+
 
 	if (it != name.cend()) {
 		switch (*it) {
