@@ -88,6 +88,9 @@ m_dmrNetworkJitter(500U),
 m_dmrNetworkEnableUnlink(true),
 m_dmrNetworkIDUnlink(4000U),
 m_dmrNetworkPCUnlink(false),
+m_dmrTGListFile(),
+m_dmrNetworkAutoPrivateReply(false),
+m_dmrNetworkPrivateReplyTimeout(60U),
 m_dmrIdLookupFile(),
 m_dmrIdLookupTime(0U),
 m_logDisplayLevel(0U),
@@ -272,6 +275,10 @@ bool CConf::read()
 			m_dmrNetworkPCUnlink = ::atoi(value) == 1;
 		else if (::strcmp(key, "TGListFile") == 0)
 			m_dmrTGListFile = value;
+		else if (::strcmp(key, "AutoPrivateReply") == 0)
+			m_dmrNetworkAutoPrivateReply = ::atoi(value) == 1;
+		else if (::strcmp(key, "PrivateReplyTimeout") == 0)
+			m_dmrNetworkPrivateReplyTimeout = (unsigned int)::atoi(value);
 	} else if (section == SECTION_DMRID_LOOKUP) {
 		if (::strcmp(key, "File") == 0)
 			m_dmrIdLookupFile = value;
@@ -599,6 +606,16 @@ bool CConf::getDMRNetworkPCUnlink() const
 std::string CConf::getDMRTGListFile() const
 {
 	return m_dmrTGListFile;
+}
+
+bool CConf::getDMRNetworkAutoPrivateReply() const
+{
+	return m_dmrNetworkAutoPrivateReply;
+}
+
+unsigned int CConf::getDMRNetworkPrivateReplyTimeout() const
+{
+	return m_dmrNetworkPrivateReplyTimeout;
 }
 
 std::string CConf::getDMRIdLookupFile() const

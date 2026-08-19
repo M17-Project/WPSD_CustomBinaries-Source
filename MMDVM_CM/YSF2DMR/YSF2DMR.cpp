@@ -327,6 +327,7 @@ int CYSF2DMR::run()
 	CStopWatch stopWatch;
 	CStopWatch ysfWatch;
 	CStopWatch dmrWatch;
+	CStopWatch privateReplyWatch;
 	stopWatch.start();
 	ysfWatch.start();
 	dmrWatch.start();
@@ -341,10 +342,37 @@ int CYSF2DMR::run()
 	bool enableUnlink = m_conf.getDMRNetworkEnableUnlink();
 	bool unlinkReceived = false;
 
+	bool autoPrivateReply = m_conf.getDMRNetworkAutoPrivateReply();
+	unsigned int privateReplyTimeout = m_conf.getDMRNetworkPrivateReplyTimeout();
+
+	if (privateReplyTimeout == 0U)
+		privateReplyTimeout = 60U;
+
+	LogMessage("Private Call Reply: %s, timeout %u seconds",
+		autoPrivateReply ? "enabled" : "disabled",
+		privateReplyTimeout);
+
 	TG_STATUS TG_connect_state = NONE;
 	unsigned char gps_buffer[20U];
 
-	unsigned int tglistOpt = 0; 
+	unsigned int tglistOpt = 0;
+
+	bool privateReplyActive = false;
+	unsigned int privateReplyTarget = 0U;
+	unsigned int privateReplySavedDstId = 0U;
+	FLCO privateReplySavedFLCO = FLCO_GROUP;
+
+	auto cancelPrivateReply = [&]() {
+		if (privateReplyActive) {
+			LogMessage("Private reply mode cancelled by manual destination change; previous reply target was %u",
+				privateReplyTarget);
+
+			privateReplyActive = false;
+			privateReplyTarget = 0U;
+			privateReplySavedDstId = 0U;
+			privateReplySavedFLCO = FLCO_GROUP;
+		}
+	};
 
 	for (; end == 0;) {
 		unsigned char buffer[2000U];
@@ -415,6 +443,7 @@ int CYSF2DMR::run()
 
 					switch (status) {
 						case WXS_CONNECT:
+							cancelPrivateReply();
 							m_srcid = findYSFID(m_ysfSrc, false);
 
 							m_ptt_dstid = m_wiresX->getDstID();
@@ -470,6 +499,7 @@ int CYSF2DMR::run()
 							break;
 
 						case WXS_DISCONNECT:
+							cancelPrivateReply();
 							LogMessage("Disconnect has been requested by %s", m_ysfSrc.c_str());
 
 							m_srcid = findYSFID(m_ysfSrc, false);
@@ -496,6 +526,7 @@ int CYSF2DMR::run()
 
 					switch (status) {
 						case WXS_CONNECT:
+							cancelPrivateReply();
 							m_srcid = findYSFID(m_ysfSrc, false);
 
 							m_ptt_dstid = m_dtmf->getDstID();
@@ -550,6 +581,7 @@ int CYSF2DMR::run()
 							break;
 
 						case WXS_DISCONNECT:
+							cancelPrivateReply();
 							LogMessage("Disconnect via DTMF has been requested by %s", m_ysfSrc.c_str());
 
 							m_srcid = findYSFID(m_ysfSrc, false);
@@ -570,6 +602,10 @@ int CYSF2DMR::run()
 				}
 
 				if ((::memcmp(buffer, "YSFD", 4U) == 0U) && (dt == YSF_DT_VD_MODE2)) {
+					if (privateReplyActive &&
+						(fi == YSF_FI_HEADER || fi == YSF_FI_COMMUNICATIONS || fi == YSF_FI_TERMINATOR))
+						privateReplyWatch.start();
+
 					CYSFPayload ysfPayload;
 
 					if (fi == YSF_FI_HEADER) {
@@ -791,6 +827,45 @@ int CYSF2DMR::run()
 
 			if (!tx_dmrdata.isMissing()) {
 				networkWatchdog.start();
+
+				const bool privateCallToUs =
+					netflco == FLCO_USER_USER &&
+					(DstId == m_defsrcid || DstId == m_srcHS);
+
+				if (autoPrivateReply && privateCallToUs) {
+					if (!privateReplyActive &&
+						DataType == DT_VOICE_LC_HEADER &&
+						DataType != m_dmrLastDT) {
+
+						privateReplySavedDstId = m_dstid;
+						privateReplySavedFLCO = m_dmrflco;
+						privateReplyTarget = SrcId;
+						privateReplyActive = true;
+
+						m_dstid = SrcId;
+						m_dmrflco = FLCO_USER_USER;
+
+						privateReplyWatch.start();
+
+						LogMessage("Private reply mode activated: caller %u, saved destination %s%u, timeout %u seconds",
+							privateReplyTarget,
+							privateReplySavedFLCO == FLCO_GROUP ? "TG " : "",
+							privateReplySavedDstId,
+							privateReplyTimeout);
+					}
+					else if (privateReplyActive && SrcId == privateReplyTarget) {
+						// Keep reply mode alive for the whole incoming private transmission.
+						privateReplyWatch.start();
+					}
+					else if (privateReplyActive &&
+						SrcId != privateReplyTarget &&
+						DataType == DT_VOICE_LC_HEADER &&
+						DataType != m_dmrLastDT) {
+
+						LogMessage("Private call from %u received while reply mode is locked to %u; reply target unchanged",
+							SrcId, privateReplyTarget);
+					}
+				}
 
 				if(DataType == DT_TERMINATOR_WITH_LC) {
 					if (m_dmrFrames == 0U) {
@@ -1082,6 +1157,22 @@ int CYSF2DMR::run()
 				ysf_cnt++;
 				ysfWatch.start();
 			}
+		}
+
+		if (privateReplyActive &&
+			privateReplyWatch.elapsed() >= privateReplyTimeout * 1000U) {
+
+			LogMessage("Private reply mode timeout: restoring destination %s%u",
+				privateReplySavedFLCO == FLCO_GROUP ? "TG " : "",
+				privateReplySavedDstId);
+
+			m_dstid = privateReplySavedDstId;
+			m_dmrflco = privateReplySavedFLCO;
+
+			privateReplyActive = false;
+			privateReplyTarget = 0U;
+			privateReplySavedDstId = 0U;
+			privateReplySavedFLCO = FLCO_GROUP;
 		}
 
 		stopWatch.start();

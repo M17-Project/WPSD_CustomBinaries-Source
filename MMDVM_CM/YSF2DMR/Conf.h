@@ -86,6 +86,8 @@ public:
   unsigned int getDMRNetworkIDUnlink() const;
   bool         getDMRNetworkPCUnlink() const;
   std::string  getDMRTGListFile() const;
+  bool         getDMRNetworkAutoPrivateReply() const;
+  unsigned int getDMRNetworkPrivateReplyTimeout() const;
 
   // The DMR Id section
   std::string  getDMRIdLookupFile() const;
@@ -161,6 +163,8 @@ private:
   unsigned int m_dmrNetworkIDUnlink;
   bool         m_dmrNetworkPCUnlink;
   std::string  m_dmrTGListFile;
+  bool         m_dmrNetworkAutoPrivateReply;
+  unsigned int m_dmrNetworkPrivateReplyTimeout;
 
   std::string  m_dmrIdLookupFile;
   unsigned int m_dmrIdLookupTime;
